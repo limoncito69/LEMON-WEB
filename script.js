@@ -24,10 +24,26 @@ const P = [
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const RM = matchMedia("(prefers-reduced-motion:reduce)").matches, FINE = matchMedia("(pointer:fine)").matches;
-const A = f => "assets/" + f, lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const A = f => "assets/" + encodeURI(f), lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const HOME = ["#3a2bff", "#ff3d8b"];
 const mouse = { x: 0, y: 0, nx: .5, ny: .5 };
 addEventListener("pointermove", e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.nx = e.clientX / innerWidth; mouse.ny = 1 - e.clientY / innerHeight; });
+
+// ===== PDF: se dibujan con pdf.js (funciona igual en móvil y PC) =====
+const isPdf = f => /\.pdf$/i.test(f);
+let pdfP = null; const pdfDocs = {};
+function pdfLib() {
+  return pdfP || (pdfP = new Promise((ok, no) => {
+    const s = document.createElement("script"), v = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+    s.src = v + "pdf.min.js"; s.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = v + "pdf.worker.min.js"; ok(pdfjsLib); }; s.onerror = no; document.head.append(s);
+  }));
+}
+async function pdfDoc(f) { const l = await pdfLib(); return pdfDocs[f] || (pdfDocs[f] = l.getDocument(A(f)).promise); }
+async function pdfCanvas(f, n, w) {
+  const pg = await (await pdfDoc(f)).getPage(n), k = w / pg.getViewport({ scale: 1 }).width, v = pg.getViewport({ scale: k }), c = document.createElement("canvas");
+  c.width = v.width; c.height = v.height; await pg.render({ canvasContext: c.getContext("2d"), viewport: v }).promise; return c;
+}
+async function coverSrc(p) { return isPdf(p.cover) ? (await pdfCanvas(p.cover, 1, 1400)).toDataURL("image/jpeg", .9) : A(p.cover); }
 
 // ===== Contenido =====
 const sc = $("#sc");
@@ -66,7 +82,7 @@ const done = () => { if (++loaded === P.length) ready(); };
 
 try {
   renderer = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.autoClear = false;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, W < 820 ? 1.5 : 2)); renderer.autoClear = false;
   scene = new THREE.Scene(); bgScene = new THREE.Scene(); bgCam = new THREE.Camera();
   cam = new THREE.PerspectiveCamera(50, 1, 1, 3000);
 
@@ -107,19 +123,20 @@ vec4 c=vec4(texture2D(uTx,uv+vec2(o,0.)).r,texture2D(uTx,uv).g,texture2D(uTx,uv-
 gl_FragColor=vec4(c.rgb,uL);}` }));
     m.visible = false; scene.add(m);
     planes.push({ el, m, u, h: 0, rx: 0, ry: 0 });
-    loader.load(A(P[i].cover), tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, done);
+    coverSrc(P[i]).then(src => loader.load(src, tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, done)).catch(done);
     el.addEventListener("pointerenter", () => { planes[i].hover = 1; target.a.set(P[i].ac); target.b.set(P[i].ac).offsetHSL(.12, 0, .16); if (FINE) cu(1); });
     el.addEventListener("pointerleave", () => { planes[i].hover = 0; target.a.set(HOME[0]); target.b.set(HOME[1]); cu(0); });
   });
-} catch (err) { document.body.classList.add("nogl"); setTimeout(ready, 300); }
+} catch (err) { document.body.classList.add("nogl"); setTimeout(() => ready(), 300); }
 
 function resize() {
   W = innerWidth; H = innerHeight;
   if (!renderer) return;
-  renderer.setSize(W, H); bgU.uR.value.set(W * renderer.getPixelRatio(), H * renderer.getPixelRatio());
+  renderer.setSize(W, H, false); bgU.uR.value.set(W * renderer.getPixelRatio(), H * renderer.getPixelRatio());
   cam.aspect = W / H; cam.position.z = 800; cam.fov = 2 * Math.atan(H / 2 / 800) * 180 / Math.PI; cam.updateProjectionMatrix();
 }
-addEventListener("resize", resize); resize();
+let rw = innerWidth, rh = innerHeight;
+addEventListener("resize", () => { if (innerWidth !== rw || Math.abs(innerHeight - rh) > 140) { rw = innerWidth; rh = innerHeight; resize(); } }); resize();
 
 // ===== Cursor =====
 const cuEl = $("#cu"), cuT = $("span", cuEl); let cx = 0, cy = 0;
@@ -131,10 +148,11 @@ const mq = [{ el: $("#m1"), x: 0, d: -1 }, { el: $("#m2"), x: 0, d: 1 }];
 const hero = $("#h1"); let t0 = performance.now(), sSm = 0;
 function loop(now) {
   const t = (now - t0) / 1000, ty = scrollY;
-  const prev = sy; sy = lerp(sy, ty, RM ? 1 : .085); vel = lerp(vel, clamp(sy - prev, -60, 60), .12);
+  const prev = sy; sy = lerp(sy, ty, RM ? 1 : (FINE ? .085 : .16)); vel = lerp(vel, clamp(sy - prev, -60, 60), .12);
   sc.style.transform = `translate3d(0,${-sy}px,0)`;
   // Titular 3D sigue al ratón
-  hero.style.setProperty("--rx", (mouse.ny - .5) * 16 + "deg"); hero.style.setProperty("--ry", (mouse.nx - .5) * 22 + "deg");
+  const mx = FINE ? mouse.nx - .5 : Math.sin(t * .5) * .5, my = FINE ? mouse.ny - .5 : Math.cos(t * .4) * .35;
+  hero.style.setProperty("--rx", my * 16 + "deg"); hero.style.setProperty("--ry", mx * 22 + "deg");
   // Bandas: avanzan solas y aceleran con el scroll
   mq.forEach(m => { const w = m.el.scrollWidth / 2; m.x += m.d * (1.1 + Math.abs(vel) * .7) + vel * .0; m.x = ((m.x % w) - w) % w; m.el.style.transform = `translate3d(${m.x}px,0,0) skewX(${-vel * .25}deg)`; });
   // Cursor
@@ -158,31 +176,57 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
-// ===== Carga =====
-let ldv = 0, isReady = false;
-function ready() { isReady = true; }
-const ldn = $("#ldn"), ld = $("#ld");
-(function count() {
-  ldv = Math.min(isReady ? 100 : 90, ldv + (isReady ? 5 : 1.3));
-  ldn.textContent = Math.round(ldv);
-  if (ldv >= 100) { ld.classList.add("off"); document.body.classList.add("go"); return; }
+// ===== Carga: lenta, con "Limoncito" en silueta que se rellena bajo el contador =====
+let isReady = false; const ready = () => { isReady = true; };
+const ldn = $("#ldn"), ld = $("#ld"), t00 = performance.now(), MIN = RM ? 600 : 5200; let shown = 0;
+(function count(now) {
+  const b = clamp(((now || performance.now()) - t00) / MIN, 0, 1), e = b * b * (3 - 2 * b);
+  shown = Math.max(shown, isReady ? e * 100 : Math.min(e * 100, 92));
+  ldn.textContent = Math.round(shown); ld.style.setProperty("--p", shown + "%");
+  if (isReady && b >= 1) { ldn.textContent = 100; ld.style.setProperty("--p", "100%"); setTimeout(() => { ld.classList.add("off"); document.body.classList.add("go"); }, 450); setTimeout(() => ld.style.display = "none", 1800); return; }
   requestAnimationFrame(count);
 })();
-setTimeout(ready, 4000);
+setTimeout(ready, 7000);
 requestAnimationFrame(loop);
 
 // ===== Proyecto abierto =====
-const ov = $("#ov"), x = document.createElement("button"); x.id = "x"; x.textContent = "Cerrar"; document.body.append(x);
+const ov = $("#ov"), x = document.createElement("button"), pg = document.createElement("i");
+x.id = "x"; x.textContent = "Cerrar"; pg.id = "pg"; document.body.append(x, pg);
+const fo = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("on"); fo.unobserve(en.target); } }), { root: ov, threshold: .1 });
+let cur = 0;
 function open(i, e) {
-  const p = P[i], big = p.imgs.filter(m => !m[2]), sm = p.imgs.filter(m => m[2]);
+  cur = i; const p = P[i], nx = (i + 1) % P.length, big = p.imgs.filter(m => !m[2]), sm = p.imgs.filter(m => m[2]); let k = 0;
   ov.style.setProperty("--pc", p.ac); ov.style.setProperty("--ox", (e && e.clientX || W / 2) + "px"); ov.style.setProperty("--oy", (e && e.clientY || H / 2) + "px");
-  ov.innerHTML = `<div class="in"><h2>${p.t}</h2><p class="d">${p.d}</p><ul class="tg">${p.tags.map(t => `<li>${t}</li>`).join("")}</ul>
-    ${big.map(([f, c]) => `<figure><img src="${A(f)}" alt="${p.t}: ${c}"><figcaption>${c}</figcaption></figure>`).join("")}
-    ${sm.length ? `<div class="sm">${sm.map(([f, c]) => `<img src="${A(f)}" alt="${p.t}: ${c || sm[0][1]}">`).join("")}</div>` : ""}</div>`;
+  const title = p.t.split(" ").map(w => `<span class="wd">${[...w].map(c => `<span class="c" style="--i:${k++}">${c}</span>`).join("")}</span>`).join(" ");
+  ov.innerHTML = `<div class="in"><h2 aria-label="${p.t}">${title}</h2><p class="d">${p.d}</p><ul class="tg">${p.tags.map((t, n) => `<li style="--i:${n}">${t}</li>`).join("")}</ul>
+    ${big.map(([f, c]) => isPdf(f) ? `<div class="pdfw" data-pdf="${f}"><p class="ph">Cargando PDF…</p></div>` : `<figure><img src="${A(f)}" alt="${p.t}: ${c}"><figcaption>${c}</figcaption></figure>`).join("")}
+    ${sm.length ? `<div class="sm">${sm.map(([f, c], n) => `<img style="--i:${n}" src="${A(f)}" alt="${p.t}: ${c || sm[0][1]}">`).join("")}</div>` : ""}
+    <a class="nx" href="#" data-n="${nx}"><small>Siguiente proyecto</small><span>${P[nx].t}</span></a></div>`;
   ov.hidden = false; ov.scrollTop = 0; document.documentElement.style.overflow = "hidden"; ovOpen = true; document.body.classList.add("ovo");
-  requestAnimationFrame(() => ov.classList.add("open"));
-  const fo = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("on"); fo.unobserve(en.target); } }), { root: ov, threshold: .1 });
-  $$("figure", ov).forEach(f => fo.observe(f)); x.focus({ preventScroll: true });
+  requestAnimationFrame(() => { ov.classList.add("open"); ovLoop(); });
+  $$("figure, .sm", ov).forEach(f => fo.observe(f)); x.focus({ preventScroll: true });
+  $(".nx", ov).addEventListener("click", ev => { ev.preventDefault(); ov.classList.remove("open"); setTimeout(() => open(nx, ev), 950); });
+  // PDFs: cada página se dibuja como un lienzo
+  $$("[data-pdf]", ov).forEach(async w => {
+    const f = w.dataset.pdf;
+    try {
+      const d = await pdfDoc(f), cw = Math.min(ov.clientWidth - 32, 1000) * Math.min(devicePixelRatio, 2);
+      for (let n = 1; n <= d.numPages; n++) {
+        const c = await pdfCanvas(f, n, cw); if (cur !== i || !ovOpen) return;
+        c.setAttribute("role", "img"); c.setAttribute("aria-label", `${p.t}: página ${n}`);
+        const fg = document.createElement("figure"); fg.append(c); w.append(fg); if (n === 1) $(".ph", w)?.remove(); fo.observe(fg);
+      }
+      w.insertAdjacentHTML("beforeend", `<a class="pl2" href="${A(f)}" target="_blank" rel="noopener">Abrir el PDF completo</a>`);
+    } catch (err) { w.innerHTML = `<a class="pl2" href="${A(f)}" target="_blank" rel="noopener">Abrir el PDF</a>`; }
+  });
+}
+// Parallax 3D de las piezas y barra de progreso mientras el proyecto está abierto
+function ovLoop() {
+  if (!ovOpen) return;
+  const h = ov.clientHeight, st = ov.scrollTop, mx = ov.scrollHeight - h;
+  $$("figure", ov).forEach(f => f.style.setProperty("--d", clamp((f.offsetTop + f.offsetHeight / 2 - st - h / 2) / h, -1, 1).toFixed(3)));
+  const t = $("h2", ov); if (t) t.style.transform = `translateY(${st * .25}px)`;
+  pg.style.transform = `scaleX(${mx > 0 ? st / mx : 0})`; requestAnimationFrame(ovLoop);
 }
 function close() {
   ov.classList.remove("open"); document.body.classList.remove("ovo"); document.documentElement.style.overflow = ""; ovOpen = false;
