@@ -23,7 +23,7 @@ const P = [
 ];
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const RM = matchMedia("(prefers-reduced-motion:reduce)").matches, FINE = matchMedia("(hover:hover) and (pointer:fine)").matches;
+const RM = matchMedia("(prefers-reduced-motion:reduce)").matches && !/motion=on/.test(location.search), FINE = matchMedia("(hover:hover) and (pointer:fine)").matches;
 const A = f => "assets/" + encodeURI(f), lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const HOME = ["#3a2bff", "#ff3d8b"];
 // Colores del fondo (propios, sin depender de three.js) y estado de hover por proyecto
@@ -155,7 +155,7 @@ vec4 c=vec4(texture2D(uTx,uv+vec2(o,0.)).r,texture2D(uTx,uv).g,texture2D(uTx,uv-
 gl_FragColor=vec4(c.rgb,uL);}` }));
     m.visible = false; scene.add(m);
     planes.push({ el, m, u, i, h: 0, rx: 0, ry: 0 });
-    coverSrc(P[i]).then(src => loader.load(src, tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, done)).catch(done);
+    coverSrc(P[i]).then(src => loader.load(src, tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, () => { el.classList.add("fb"); done(); })).catch(() => { el.classList.add("fb"); done(); });
   });
 } catch (err) { fallback(); setTimeout(() => ready(), 300); }
 $$(".pj").forEach((el, i) => {
@@ -188,18 +188,18 @@ function loop(now) {
   if (renderer && ema > 38 && pr > .6 && now - lastAdj > 2500) { pr = Math.max(.6, pr * .8); lastAdj = now; ema = 16; resize(); }
   for (let k = 0; k < 3; k++) { col.a[k] = lerp(col.a[k], col.ta[k], .06); col.b[k] = lerp(col.b[k], col.tb[k], .06); }
   if (!renderer) { fb.style.setProperty("--ca", col.a.map(v => Math.round(v * 255)).join(" ")); fb.style.setProperty("--cb", col.b.map(v => Math.round(v * 255)).join(" ")); }
-  const prev = sy; sy = lerp(sy, ty, RM ? 1 : (FINE ? .085 : .16)); vel = lerp(vel, clamp(sy - prev, -60, 60), .12);
+  const prev = sy; sy = lerp(sy, ty, RM ? .2 : (FINE ? .085 : .16)); vel = lerp(vel, clamp(sy - prev, -60, 60), .12);
   sc.style.transform = `translate3d(0,${-sy}px,0)`;
   // Titular 3D sigue al ratón
   const mx = FINE ? mouse.nx - .5 : Math.sin(t * .5) * .5, my = FINE ? mouse.ny - .5 : Math.cos(t * .4) * .35;
   hero.style.setProperty("--rx", my * 16 + "deg"); hero.style.setProperty("--ry", mx * 22 + "deg");
   // Bandas: avanzan solas y aceleran con el scroll
-  mq.forEach(m => { const w = m.el.scrollWidth / 2; m.x += m.d * (1.1 + Math.abs(vel) * .7) + vel * .0; m.x = ((m.x % w) - w) % w; m.el.style.transform = `translate3d(${m.x}px,0,0) skewX(${-vel * .25}deg)`; });
+  mq.forEach(m => { const w = m.el.scrollWidth / 2; m.x += m.d * (1.1 + Math.abs(vel) * .7) + vel * .0; m.x = ((m.x % w) - w) % w; m.el.style.transform = `translate3d(${m.x}px,0,0) skewX(${RM ? 0 : -vel * .25}deg)`; });
   // Cursor
   cx = lerp(cx, mouse.x, .2); cy = lerp(cy, mouse.y, .2); if (FINE) cuEl.style.translate = `${cx}px ${cy}px`;
   if (renderer) try {
     bgU.uA.value.setRGB(col.a[0], col.a[1], col.a[2]); bgU.uB.value.setRGB(col.b[0], col.b[1], col.b[2]);
-    bgU.uT.value = RM ? 0 : t; bgU.uS.value = sy; bgU.uM.value.set(lerp(bgU.uM.value.x, mouse.nx, .05), lerp(bgU.uM.value.y, mouse.ny, .05));
+    bgU.uT.value = t * (RM ? .35 : 1); bgU.uS.value = sy; bgU.uM.value.set(lerp(bgU.uM.value.x, mouse.nx, .05), lerp(bgU.uM.value.y, mouse.ny, .05));
     planes.forEach(p => {
       const r = p.el.firstElementChild.getBoundingClientRect(), vis = r.bottom > -200 && r.top < H + 200 && p.u.uTx.value;
       p.m.visible = !!vis; if (!vis) return;
@@ -218,7 +218,7 @@ function loop(now) {
 
 // ===== Carga: lenta, con "Limoncito" en silueta que se rellena bajo el contador =====
 let isReady = false; const ready = () => { isReady = true; };
-const ldn = $("#ldn"), ld = $("#ld"), t00 = performance.now(), MIN = RM ? 600 : 5200; let shown = 0;
+const ldn = $("#ldn"), ld = $("#ld"), t00 = performance.now(), MIN = 5200; let shown = 0;
 (function count(now) {
   const b = clamp(((now || performance.now()) - t00) / MIN, 0, 1), e = b * b * (3 - 2 * b);
   shown = Math.max(shown, isReady ? e * 100 : Math.min(e * 100, 92));
