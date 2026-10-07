@@ -3,29 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tu Nombre · Diseño gráfico</title>
+<title>Lemon · Diseño gráfico</title>
 <meta name="description" content="Portfolio de diseño gráfico: identidad visual, cartas, cartelería y diseño editorial.">
-<meta name="theme-color" content="#0c0d11">
-<meta property="og:title" content="Tu Nombre · Diseño gráfico">
+<meta name="theme-color" content="#1a1466">
+<meta property="og:title" content="Lemon · Diseño gráfico">
 <meta property="og:description" content="Identidades, cartas, cartelería y piezas editoriales para negocios con carácter.">
 <meta property="og:image" content="assets/mupi.jpg">
-<link rel="icon" href="assets/destacada-13.jpg">
+<link rel="icon" href="assets/mixet-perfil.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600..800&family=Familjen+Grotesk:wght@400..600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <canvas id="gl" aria-hidden="true"></canvas>
-<div id="ld" aria-hidden="true"><span id="ldt" class="disp"></span><i></i></div>
-<div id="bar"></div>
-<div id="cursor" aria-hidden="true"></div>
-<div id="cv" aria-hidden="true"><i style="--k:0"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><b id="cvt"></b></div>
+<div id="ld" aria-hidden="true"><b id="ldn">0</b></div>
+<div id="cu" aria-hidden="true"><span></span></div>
 <header id="hd">
-  <a class="logo" href="#/" data-go="top">Tu Nombre</a>
-  <nav class="seg" aria-label="Principal"><a href="#/" data-go="top">Inicio</a><a href="#/" data-go="trabajos">Trabajos</a></nav>
+  <a class="logo" href="#top" data-go="top">Lemon</a>
+  <nav aria-label="Principal"><a href="#top" data-go="top">Inicio</a><a href="#trabajos" data-go="trabajos">Trabajos</a></nav>
 </header>
-<main id="app"></main>
+<div id="sc">
+  <section class="hero" id="top">
+    <h1 id="h1" aria-label="Diseño gráfico"></h1>
+    <p class="lead">Identidades, cartas, cartelería y piezas editoriales para negocios con carácter.</p>
+    <svg class="spin" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="c" d="M100 100m-76 0a76 76 0 1 1 152 0a76 76 0 1 1-152 0"/></defs><text><textPath href="#c">desliza para ver los trabajos • desliza para ver los trabajos •</textPath></text></svg>
+  </section>
+  <div class="mqs" aria-hidden="true"><div class="mq" id="m1"></div><div class="mq o" id="m2"></div></div>
+  <section id="trabajos" class="wk"></section>
+  <section class="say"><p id="say"></p></section>
+  <footer class="ft"><p class="big">Gracias por mirar</p><a href="#top" data-go="top">Volver arriba</a></footer>
+</div>
+<div id="ov" role="dialog" aria-modal="true" aria-label="Proyecto" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="script.js"></script>
 </body>
