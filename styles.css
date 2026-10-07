@@ -136,8 +136,9 @@ body.ovo #pg{opacity:1}
   #ov figure,#ov .pdfw figure{margin-top:40px}
 }
 @media (pointer:coarse){#cu{display:none}}
+/* Movimiento reducido: se suaviza, no se apaga */
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition:none!important}
-  #h1 .ch,#ov .c,#ov .d,#ov .tg li{opacity:1;transform:none}.pj.rv .pl,.pj.rv h2{clip-path:none}.say .w i{transform:none}
-  #ov figure img,#ov figure canvas{clip-path:none;transform:none}#ov .sm img{opacity:1;transform:none}
+  .spin{animation-duration:40s}
+  .track,.mq{animation-duration:60s}
 }
+.pj.fb .pl img{opacity:1}
