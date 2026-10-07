@@ -5,9 +5,12 @@ body{color:var(--ink);font:400 18px/1.5 var(--fb);overflow-x:hidden;-webkit-text
 .wd{display:inline-block;white-space:nowrap}
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
-#gl{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+#gl{position:absolute;left:0;top:0;width:100vw;height:100vh;z-index:0;will-change:transform}
+/* Todo el contenido va sobre el lienzo y se mezcla con él: el texto invierte su color como el logo */
+.hero,.mqs,.wk,.say,.ft{position:relative}
+.hero,.mqs,.say,.ft,.pj .info{mix-blend-mode:difference}
 #sc{position:fixed;top:0;left:0;width:100%;z-index:1;will-change:transform;overflow-x:clip}
-#fb{display:none;position:fixed;inset:0;z-index:0;overflow:hidden;background:#1a1466}
+#fb{display:none;position:absolute;left:0;top:0;width:100vw;height:100vh;z-index:0;will-change:transform;overflow:hidden;background:#1a1466}
 #fb i{position:absolute;width:75vmax;height:75vmax;border-radius:50%;filter:blur(70px);opacity:.7;animation:blob 16s ease-in-out infinite alternate}
 #fb i:nth-child(1){left:-20vmax;top:-20vmax;background:rgb(var(--ca,58 43 255))}
 #fb i:nth-child(2){right:-25vmax;top:10vh;background:rgb(var(--cb,255 61 139));animation-delay:-5s;animation-duration:20s}
