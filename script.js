@@ -166,6 +166,7 @@ $$(".pj").forEach((el, i) => {
 
 function resize() {
   W = innerWidth; H = innerHeight; fitAll();
+  for (const e of [$("#gl"), $("#fb")]) { e.style.width = W + "px"; e.style.height = H + "px"; }
   if (!renderer) return;
   renderer.setPixelRatio(pr); renderer.setSize(W, H, false); bgU.uR.value.set(W * renderer.getPixelRatio(), H * renderer.getPixelRatio());
   cam.aspect = W / H; cam.position.z = 800; cam.fov = 2 * Math.atan(H / 2 / 800) * 180 / Math.PI; cam.updateProjectionMatrix();
@@ -180,7 +181,7 @@ $$("#hd a, .ft a").forEach(a => { a.addEventListener("pointerenter", () => cuEl.
 
 // ===== Bucle =====
 const mq = [{ el: $("#m1"), x: 0, d: -1 }, { el: $("#m2"), x: 0, d: 1 }];
-const hero = $("#h1"); let t0 = performance.now(), lastT = 0, ema = 16, lastAdj = 0; const fb = $("#fb");
+const hero = $("#h1"); let t0 = performance.now(), lastT = 0, ema = 16, lastAdj = 0; const fb = $("#fb"), glc = $("#gl");
 function loop(now) {
   const t = (now - t0) / 1000, ty = scrollY;
   // Si el equipo va justo, baja la resolución del WebGL para mantener la fluidez
@@ -190,6 +191,7 @@ function loop(now) {
   if (!renderer) { fb.style.setProperty("--ca", col.a.map(v => Math.round(v * 255)).join(" ")); fb.style.setProperty("--cb", col.b.map(v => Math.round(v * 255)).join(" ")); }
   const prev = sy; sy = lerp(sy, ty, RM ? .2 : (FINE ? .085 : .16)); vel = lerp(vel, clamp(sy - prev, -60, 60), .12);
   sc.style.transform = `translate3d(0,${-sy}px,0)`;
+  const ct = `translate3d(0,${sy}px,0)`; glc.style.transform = ct; fb.style.transform = ct; // el lienzo se queda fijo dentro de #sc para que el texto se mezcle con él
   // Titular 3D sigue al ratón
   const mx = FINE ? mouse.nx - .5 : Math.sin(t * .5) * .5, my = FINE ? mouse.ny - .5 : Math.cos(t * .4) * .35;
   hero.style.setProperty("--rx", my * 16 + "deg"); hero.style.setProperty("--ry", mx * 22 + "deg");
