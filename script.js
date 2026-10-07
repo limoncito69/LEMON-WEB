@@ -23,9 +23,37 @@ const P = [
 ];
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const RM = matchMedia("(prefers-reduced-motion:reduce)").matches, FINE = matchMedia("(pointer:fine)").matches;
+const RM = matchMedia("(prefers-reduced-motion:reduce)").matches, FINE = matchMedia("(hover:hover) and (pointer:fine)").matches;
 const A = f => "assets/" + encodeURI(f), lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const HOME = ["#3a2bff", "#ff3d8b"];
+// Colores del fondo (propios, sin depender de three.js) y estado de hover por proyecto
+const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+const col = { a: rgb(HOME[0]), b: rgb(HOME[1]), ta: rgb(HOME[0]), tb: rgb(HOME[1]) }, hv = [];
+const setTarget = (a, b) => { col.ta = rgb(a); col.tb = b ? rgb(b) : rgb(a).map(v => v + (1 - v) * .3); };
+// Ajuste de texto: cada palabra siempre cabe en pantalla, sea cual sea el tamaño de ventana
+const words = s => s.split(" ").map(w => `<span class="wd">${w}</span>`).join(" ");
+function fitWords(el, base, aw) {
+  if (!el) return; el.style.fontSize = "100px";
+  const m = Math.max(0, ...$$(".wd", el).map(w => w.offsetWidth));
+  el.style.fontSize = (m ? Math.max(22, Math.min(base, 100 * aw / m * .98)) : base) + "px";
+}
+function fitHero() {
+  const h = $("#h1"); if (!h) return; h.style.fontSize = "100px";
+  const w = Math.max(...$$(".ln", h).map(l => l.offsetWidth)); if (!w) return;
+  const vw = innerWidth, byW = 100 * (vw - (vw < 820 ? 32 : 90)) / w, byH = innerHeight * .5 / 1.72;
+  h.style.fontSize = Math.max(26, Math.min(byW * .97, byH, 360)) + "px";
+}
+function fitOv() {
+  const o = $("#ov"), inn = $(".in", o); if (!inn) return; const vw = innerWidth, aw = inn.clientWidth;
+  fitWords($("h2", o), Math.min(190, vw * .12), aw); $$(".nx>span", o).forEach(s => fitWords(s, Math.min(170, vw * .11), aw));
+}
+function fitAll() {
+  const vw = innerWidth, pj = Math.min(1300, vw - (vw < 820 ? 32 : 48));
+  fitHero();
+  $$(".pj h2").forEach(h => fitWords(h, vw < 820 ? Math.min(96, vw * .135) : Math.min(200, vw * .115), pj * .97));
+  fitWords($(".ft .big"), Math.min(200, vw * .12), vw * .9);
+  if (ovOpen) fitOv();
+}
 const mouse = { x: 0, y: 0, nx: .5, ny: .5 };
 addEventListener("pointermove", e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.nx = e.clientX / innerWidth; mouse.ny = 1 - e.clientY / innerHeight; });
 
@@ -55,8 +83,9 @@ const names = P.map(p => `<span>${p.t}</span>`).join("");
 $("#m1").innerHTML = names + names; $("#m2").innerHTML = names + names;
 // Trabajos
 $("#trabajos").innerHTML = P.map((p, i) => `<article class="pj rv" data-i="${i}" tabindex="0" role="button" aria-label="Abrir ${p.t}">
-  <div class="pl"><img src="${A(p.cover)}" alt="${p.t}: ${p.s}" loading="lazy"></div><h2 aria-hidden="true">${p.t}</h2>
+  <div class="pl"><img src="${A(p.cover)}" alt="${p.t}: ${p.s}" loading="lazy"></div><h2 aria-hidden="true">${words(p.t)}</h2>
   <div class="info"><b>${p.s}</b><p>${p.tags.join(", ")}</p></div></article>`).join("");
+$(".ft .big").setAttribute("aria-label", "Gracias por mirar"); $(".ft .big").innerHTML = words("Gracias por mirar");
 // Frase
 $("#say").innerHTML = "Del logotipo al vaso, de la carta a la fachada. Cada pieza se diseña como parte de un mismo sistema.".split(" ")
   .map((w, i) => `<span class="w"><i style="--i:${i}">${w}</i></span> `).join("");
@@ -76,13 +105,16 @@ $$("[data-go]").forEach(a => a.addEventListener("click", e => {
 
 // ===== WebGL =====
 let gl = null, planes = [], bgU, cam, scene, bgScene, bgCam, renderer;
-const target = { a: new THREE.Color(HOME[0]), b: new THREE.Color(HOME[1]) };
+let pr = Math.min(devicePixelRatio, innerWidth < 820 ? 1.5 : 2);
+function fallback() { document.body.classList.add("nogl"); renderer = null; }
 let loaded = 0;
 const done = () => { if (++loaded === P.length) ready(); };
 
 try {
-  renderer = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, W < 820 ? 1.5 : 2)); renderer.autoClear = false;
+  try { renderer = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: W > 820, alpha: false, powerPreference: "high-performance" }); }
+  catch (e) { renderer = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: false, alpha: false }); }
+  renderer.setPixelRatio(pr); renderer.autoClear = false;
+  $("#gl").addEventListener("webglcontextlost", e => { e.preventDefault(); fallback(); });
   scene = new THREE.Scene(); bgScene = new THREE.Scene(); bgCam = new THREE.Camera();
   cam = new THREE.PerspectiveCamera(50, 1, 1, 3000);
 
@@ -112,7 +144,7 @@ gl_FragColor=vec4(c,1.);}` })));
     const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, transparent: true,
       vertexShader: `varying vec2 vUv;uniform float uV,uT,uH;
 void main(){vUv=uv;vec3 p=position;float b=sin(uv.x*3.1416)*sin(uv.y*3.1416);
-p.z+=b*uV*-1.6+sin(uv.y*7.+uT*1.6+uv.x*3.)*(.006+uH*.018);
+p.z+=b*uV*-1.6+sin(uv.y*7.+uT*1.6+uv.x*3.)*(3.+uH*12.);
 p.y+=uV*.0016*b;
 gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
       fragmentShader: `varying vec2 vUv;uniform sampler2D uTx;uniform vec2 uS,uI;uniform float uV,uT,uH,uL;
@@ -122,17 +154,20 @@ float o=uV*.0007+uH*.004;
 vec4 c=vec4(texture2D(uTx,uv+vec2(o,0.)).r,texture2D(uTx,uv).g,texture2D(uTx,uv-vec2(o,0.)).b,1.);
 gl_FragColor=vec4(c.rgb,uL);}` }));
     m.visible = false; scene.add(m);
-    planes.push({ el, m, u, h: 0, rx: 0, ry: 0 });
+    planes.push({ el, m, u, i, h: 0, rx: 0, ry: 0 });
     coverSrc(P[i]).then(src => loader.load(src, tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, done)).catch(done);
-    el.addEventListener("pointerenter", () => { planes[i].hover = 1; target.a.set(P[i].ac); target.b.set(P[i].ac).offsetHSL(.12, 0, .16); if (FINE) cu(1); });
-    el.addEventListener("pointerleave", () => { planes[i].hover = 0; target.a.set(HOME[0]); target.b.set(HOME[1]); cu(0); });
   });
-} catch (err) { document.body.classList.add("nogl"); setTimeout(() => ready(), 300); }
+} catch (err) { fallback(); setTimeout(() => ready(), 300); }
+$$(".pj").forEach((el, i) => {
+  hv[i] = 0;
+  el.addEventListener("pointerenter", () => { hv[i] = 1; setTarget(P[i].ac); if (FINE) cu(1); });
+  el.addEventListener("pointerleave", () => { hv[i] = 0; setTarget(HOME[0], HOME[1]); cu(0); });
+});
 
 function resize() {
-  W = innerWidth; H = innerHeight;
+  W = innerWidth; H = innerHeight; fitAll();
   if (!renderer) return;
-  renderer.setSize(W, H, false); bgU.uR.value.set(W * renderer.getPixelRatio(), H * renderer.getPixelRatio());
+  renderer.setPixelRatio(pr); renderer.setSize(W, H, false); bgU.uR.value.set(W * renderer.getPixelRatio(), H * renderer.getPixelRatio());
   cam.aspect = W / H; cam.position.z = 800; cam.fov = 2 * Math.atan(H / 2 / 800) * 180 / Math.PI; cam.updateProjectionMatrix();
 }
 let rw = innerWidth, rh = innerHeight;
@@ -145,9 +180,14 @@ $$("#hd a, .ft a").forEach(a => { a.addEventListener("pointerenter", () => cuEl.
 
 // ===== Bucle =====
 const mq = [{ el: $("#m1"), x: 0, d: -1 }, { el: $("#m2"), x: 0, d: 1 }];
-const hero = $("#h1"); let t0 = performance.now(), sSm = 0;
+const hero = $("#h1"); let t0 = performance.now(), lastT = 0, ema = 16, lastAdj = 0; const fb = $("#fb");
 function loop(now) {
   const t = (now - t0) / 1000, ty = scrollY;
+  // Si el equipo va justo, baja la resolución del WebGL para mantener la fluidez
+  const dt = now - lastT; lastT = now; ema = lerp(ema, Math.min(dt, 100), .05);
+  if (renderer && ema > 38 && pr > .6 && now - lastAdj > 2500) { pr = Math.max(.6, pr * .8); lastAdj = now; ema = 16; resize(); }
+  for (let k = 0; k < 3; k++) { col.a[k] = lerp(col.a[k], col.ta[k], .06); col.b[k] = lerp(col.b[k], col.tb[k], .06); }
+  if (!renderer) { fb.style.setProperty("--ca", col.a.map(v => Math.round(v * 255)).join(" ")); fb.style.setProperty("--cb", col.b.map(v => Math.round(v * 255)).join(" ")); }
   const prev = sy; sy = lerp(sy, ty, RM ? 1 : (FINE ? .085 : .16)); vel = lerp(vel, clamp(sy - prev, -60, 60), .12);
   sc.style.transform = `translate3d(0,${-sy}px,0)`;
   // Titular 3D sigue al ratón
@@ -157,13 +197,13 @@ function loop(now) {
   mq.forEach(m => { const w = m.el.scrollWidth / 2; m.x += m.d * (1.1 + Math.abs(vel) * .7) + vel * .0; m.x = ((m.x % w) - w) % w; m.el.style.transform = `translate3d(${m.x}px,0,0) skewX(${-vel * .25}deg)`; });
   // Cursor
   cx = lerp(cx, mouse.x, .2); cy = lerp(cy, mouse.y, .2); if (FINE) cuEl.style.translate = `${cx}px ${cy}px`;
-  if (renderer) {
+  if (renderer) try {
+    bgU.uA.value.setRGB(col.a[0], col.a[1], col.a[2]); bgU.uB.value.setRGB(col.b[0], col.b[1], col.b[2]);
     bgU.uT.value = RM ? 0 : t; bgU.uS.value = sy; bgU.uM.value.set(lerp(bgU.uM.value.x, mouse.nx, .05), lerp(bgU.uM.value.y, mouse.ny, .05));
-    bgU.uA.value.lerp(target.a, .06); bgU.uB.value.lerp(target.b, .06);
     planes.forEach(p => {
       const r = p.el.firstElementChild.getBoundingClientRect(), vis = r.bottom > -200 && r.top < H + 200 && p.u.uTx.value;
       p.m.visible = !!vis; if (!vis) return;
-      p.hover = p.hover || 0; p.h = lerp(p.h, p.hover, .08);
+      p.h = lerp(p.h, hv[p.i] || 0, .08);
       const lx = clamp((mouse.x - (r.left + r.width / 2)) / r.width, -.5, .5), ly = clamp((mouse.y - (r.top + r.height / 2)) / r.height, -.5, .5);
       p.ry = lerp(p.ry, p.h * lx * .5, .08); p.rx = lerp(p.rx, p.h * ly * .5, .08);
       p.m.rotation.set(p.rx, p.ry, 0); p.m.scale.set(r.width * (1 + p.h * .04), r.height * (1 + p.h * .04), 1);
@@ -172,7 +212,7 @@ function loop(now) {
       p.u.uL.value = lerp(p.u.uL.value, p.el.classList.contains("in") ? 1 : 0, .07);
     });
     renderer.clear(); renderer.render(bgScene, bgCam); renderer.clearDepth(); renderer.render(scene, cam);
-  }
+  } catch (err) { fallback(); }
   requestAnimationFrame(loop);
 }
 
@@ -194,18 +234,18 @@ const ov = $("#ov"), x = document.createElement("button"), pg = document.createE
 x.id = "x"; x.textContent = "Cerrar"; pg.id = "pg"; document.body.append(x, pg);
 const fo = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("on"); fo.unobserve(en.target); } }), { root: ov, threshold: .1 });
 let cur = 0;
-function open(i, e) {
+function openPj(i, e) {
   cur = i; const p = P[i], nx = (i + 1) % P.length, big = p.imgs.filter(m => !m[2]), sm = p.imgs.filter(m => m[2]); let k = 0;
   ov.style.setProperty("--pc", p.ac); ov.style.setProperty("--ox", (e && e.clientX || W / 2) + "px"); ov.style.setProperty("--oy", (e && e.clientY || H / 2) + "px");
   const title = p.t.split(" ").map(w => `<span class="wd">${[...w].map(c => `<span class="c" style="--i:${k++}">${c}</span>`).join("")}</span>`).join(" ");
   ov.innerHTML = `<div class="in"><h2 aria-label="${p.t}">${title}</h2><p class="d">${p.d}</p><ul class="tg">${p.tags.map((t, n) => `<li style="--i:${n}">${t}</li>`).join("")}</ul>
     ${big.map(([f, c]) => isPdf(f) ? `<div class="pdfw" data-pdf="${f}"><p class="ph">Cargando PDF…</p></div>` : `<figure><img src="${A(f)}" alt="${p.t}: ${c}"><figcaption>${c}</figcaption></figure>`).join("")}
     ${sm.length ? `<div class="sm">${sm.map(([f, c], n) => `<img style="--i:${n}" src="${A(f)}" alt="${p.t}: ${c || sm[0][1]}">`).join("")}</div>` : ""}
-    <a class="nx" href="#" data-n="${nx}"><small>Siguiente proyecto</small><span>${P[nx].t}</span></a></div>`;
+    <a class="nx" href="#" data-n="${nx}"><small>Siguiente proyecto</small><span>${words(P[nx].t)}</span></a></div>`;
   ov.hidden = false; ov.scrollTop = 0; document.documentElement.style.overflow = "hidden"; ovOpen = true; document.body.classList.add("ovo");
-  requestAnimationFrame(() => { ov.classList.add("open"); ovLoop(); });
+  fitAll(); requestAnimationFrame(() => { ov.classList.add("open"); ovLoop(); });
   $$("figure, .sm", ov).forEach(f => fo.observe(f)); x.focus({ preventScroll: true });
-  $(".nx", ov).addEventListener("click", ev => { ev.preventDefault(); ov.classList.remove("open"); setTimeout(() => open(nx, ev), 950); });
+  $(".nx", ov).addEventListener("click", ev => { ev.preventDefault(); ov.classList.remove("open"); setTimeout(() => openPj(nx, ev), 950); });
   // PDFs: cada página se dibuja como un lienzo
   $$("[data-pdf]", ov).forEach(async w => {
     const f = w.dataset.pdf;
@@ -228,9 +268,10 @@ function ovLoop() {
   const t = $("h2", ov); if (t) t.style.transform = `translateY(${st * .25}px)`;
   pg.style.transform = `scaleX(${mx > 0 ? st / mx : 0})`; requestAnimationFrame(ovLoop);
 }
-function close() {
+function closePj() {
   ov.classList.remove("open"); document.body.classList.remove("ovo"); document.documentElement.style.overflow = ""; ovOpen = false;
   setTimeout(() => { if (!ovOpen) ov.hidden = true; }, 900);
 }
-$$(".pj").forEach(el => { const go = e => open(+el.dataset.i, e); el.addEventListener("click", go); el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }); });
-x.addEventListener("click", close); addEventListener("keydown", e => { if (e.key === "Escape" && ovOpen) close(); });
+$$(".pj").forEach(el => { const go = e => openPj(+el.dataset.i, e); el.addEventListener("click", go); el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }); });
+x.addEventListener("click", closePj); addEventListener("keydown", e => { if (e.key === "Escape" && ovOpen) closePj(); });
+fitAll(); if (document.fonts) document.fonts.ready.then(fitAll); addEventListener("load", fitAll);
