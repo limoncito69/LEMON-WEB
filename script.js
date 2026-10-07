@@ -1,210 +1,192 @@
 // ===== Tus proyectos: edita textos, colores (ac) y orden aquí. Imágenes en /assets =====
-// Cada imagen: [archivo, pie de foto, true si es pequeña (icono)]
+// imgs: [archivo, pie de foto, true si es pequeña (icono)]
 const P = [
-  { id:"mixet", title:"Mixet", sub:"Identidad y piezas para sushi a domicilio", tags:["Branding","Cartelería"], ac:"#6ec6d6", g:1, cover:"mupi.jpg",
-    desc:"Logotipo de letras burbuja, sistema de color, folletos de platos, mupi de reparto, vasos, pegatina y rótulo circular.",
+  { id:"mixet", t:"Mixet", s:"Identidad y piezas para sushi a domicilio", tags:["Branding","Cartelería"], ac:"#1fb5d4", cover:"mupi.jpg",
+    d:"Logotipo de letras burbuja, sistema de color, folletos de platos, mupi de reparto, vasos, pegatina y rótulo circular.",
     imgs:[["mupi.jpg","Mupi de reparto"],["mixet-1.jpg","Folleto de platos: classics"],["mixet-2.jpg","Folleto de platos: premium y spicy"],["vasos.jpg","Diseño de vasos"],["pegatina.jpg","Pegatina"],["rotulo.jpg","Rótulo circular"],
       ["destacada-13.jpg","Portadas de destacadas y foto de perfil",1],["destacada-14.jpg","",1],["destacada-15.jpg","",1],["destacada-16.jpg","",1],["mixet-perfil.jpg","",1]] },
-  { id:"loscarmenes", title:"Los Carmenes", sub:"Carta de tapas, vitrina y brioches", tags:["Cartas"], ac:"#d08a45", g:2, cover:"carmenes-2.jpg",
-    desc:"Portada y carta para un gastrobar, con la ilustración de la pita como fondo y una paleta cálida de color miel.",
+  { id:"loscarmenes", t:"Los Carmenes", s:"Carta de tapas, vitrina y brioches", tags:["Cartas"], ac:"#e08a2e", cover:"carmenes-2.jpg",
+    d:"Portada y carta para un gastrobar, con la ilustración de la pita como fondo y una paleta cálida de color miel.",
     imgs:[["carmenes-1.jpg","Portada"],["carmenes-2.jpg","Carta"]] },
-  { id:"barberlopez", title:"Barber López", sub:"Logotipo, rótulo y vinilo", tags:["Branding","Cartelería"], ac:"#e6e6ea", g:3, cover:"barber-logo-2.jpg", pos:"center",
-    desc:"Logotipo con navaja barbera, con y sin descriptor, y el vinilo para el escaparate de la peluquería.",
+  { id:"barberlopez", t:"Barber López", s:"Logotipo, rótulo y vinilo", tags:["Branding","Cartelería"], ac:"#6b6f8f", cover:"barber-logo-2.jpg",
+    d:"Logotipo con navaja barbera, con y sin descriptor, y el vinilo para el escaparate de la peluquería.",
     imgs:[["barber-logo-2.jpg","Logotipo con descriptor"],["barber-logo-1.jpg","Logotipo"],["vinilo.jpg","Vinilo de escaparate"]] },
-  { id:"ginesperegrin", title:"Ginés Peregrín", sub:"Carta de restaurante de autor", tags:["Cartas"], ac:"#c9a15a", g:4, cover:"gines-3.jpg",
-    desc:"Carta con ilustraciones de ojo, nariz y boca que invitan a mirar, oler y degustar. Disponible en español, inglés y alemán.",
+  { id:"ginesperegrin", t:"Ginés Peregrín", s:"Carta de restaurante de autor", tags:["Cartas"], ac:"#a87c2a", cover:"gines-3.jpg",
+    d:"Carta con ilustraciones de ojo, nariz y boca que invitan a mirar, oler y degustar. Disponible en español, inglés y alemán.",
     imgs:[["gines-3.jpg","Menú degustación y entrantes"],["gines-4.jpg","Carnes, pescados y postres"]] },
-  { id:"civitas", title:"Residencia Cívitas", sub:"Folleto de bienvenida y precios", tags:["Editorial"], ac:"#f26a2e", g:5, cover:"civitas-1.jpg", pos:"center",
-    desc:"Díptico con calendario académico, plano universitario, precios del curso y actividades de cada mes.",
+  { id:"civitas", t:"Residencia Cívitas", s:"Folleto de bienvenida y precios", tags:["Editorial"], ac:"#e8501c", cover:"civitas-1.jpg",
+    d:"Díptico con calendario académico, plano universitario, precios del curso y actividades de cada mes.",
     imgs:[["civitas-1.jpg","Cara exterior"],["civitas-2.jpg","Cara interior"]] },
-  { id:"experimenta96", title:"Experimenta 96", sub:"Revista de cultura del diseño", tags:["Editorial"], ac:"#e0313a", g:6, cover:"rev-2.jpg", pos:"center",
-    desc:"Maquetación de un reportaje sobre René Magritte: portada, aperturas a doble página y tipografía con fuerte jerarquía.",
+  { id:"experimenta96", t:"Experimenta 96", s:"Revista de cultura del diseño", tags:["Editorial"], ac:"#d0202e", cover:"rev-2.jpg",
+    d:"Maquetación de un reportaje sobre René Magritte: portada, aperturas a doble página y tipografía con fuerte jerarquía.",
     imgs:[["rev-1.jpg","Portada"],["rev-2.jpg","Apertura del reportaje"],["rev-3.jpg","Magritte, mucho más que surrealista"],["rev-4.jpg","Analizamos sus obras"]] }
 ];
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const RM = matchMedia("(prefers-reduced-motion:reduce)").matches, FINE = matchMedia("(pointer:fine)").matches, LITE = innerWidth < 820;
-const A = f => "assets/" + f, HOME_AC = "#c8ff3d";
-const wait = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
-const hash = () => location.hash.slice(1) || "/";
-const mouse = { x: 0, y: 0 };
-let R = "", busy = false, pend = null, T = [], lastY = 0;
-history.scrollRestoration = "manual";
+const RM = matchMedia("(prefers-reduced-motion:reduce)").matches, FINE = matchMedia("(pointer:fine)").matches;
+const A = f => "assets/" + f, lerp = (a, b, k) => a + (b - a) * k, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const HOME = ["#3a2bff", "#ff3d8b"];
+const mouse = { x: 0, y: 0, nx: .5, ny: .5 };
+addEventListener("pointermove", e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.nx = e.clientX / innerWidth; mouse.ny = 1 - e.clientY / innerHeight; });
 
-// Texto en letras para animar
-function split(el, o = 0) {
-  const t = el.textContent; el.setAttribute("aria-label", t); el.textContent = ""; let i = 0;
-  t.split(" ").forEach((w, wi, a) => {
-    const s = document.createElement("span"); s.className = "w"; s.setAttribute("aria-hidden", "true");
-    [...w].forEach(ch => { const l = document.createElement("span"); l.className = "lt"; l.textContent = ch; l.style.setProperty("--i", i++); s.append(l); });
-    el.append(s); if (wi < a.length - 1) el.append(" ");
+// ===== Contenido =====
+const sc = $("#sc");
+// Titular en letras con profundidad 3D
+let ci = 0;
+$("#h1").innerHTML = ["Diseño", "gráfico"].map(w => `<span class="ln" aria-hidden="true">${[...w].map(c => `<span class="ch" style="--i:${ci++};--z:${(ci % 5) - 2}">${c}</span>`).join("")}</span>`).join("");
+// Bandas
+const names = P.map(p => `<span>${p.t}</span>`).join("");
+$("#m1").innerHTML = names + names; $("#m2").innerHTML = names + names;
+// Trabajos
+$("#trabajos").innerHTML = P.map((p, i) => `<article class="pj rv" data-i="${i}" tabindex="0" role="button" aria-label="Abrir ${p.t}">
+  <div class="pl"><img src="${A(p.cover)}" alt="${p.t}: ${p.s}" loading="lazy"></div><h2 aria-hidden="true">${p.t}</h2>
+  <div class="info"><b>${p.s}</b><p>${p.tags.join(", ")}</p></div></article>`).join("");
+// Frase
+$("#say").innerHTML = "Del logotipo al vaso, de la carta a la fachada. Cada pieza se diseña como parte de un mismo sistema.".split(" ")
+  .map((w, i) => `<span class="w"><i style="--i:${i}">${w}</i></span> `).join("");
+$(".say").setAttribute("aria-label", "Del logotipo al vaso, de la carta a la fachada. Cada pieza se diseña como parte de un mismo sistema.");
+
+// Revelado al entrar en pantalla
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .15 });
+$$(".pj, .say").forEach(el => io.observe(el));
+
+// ===== Scroll suave =====
+let sy = 0, vel = 0, H = innerHeight, W = innerWidth, ovOpen = false;
+const setH = () => document.body.style.height = sc.offsetHeight + "px";
+new ResizeObserver(setH).observe(sc);
+$$("[data-go]").forEach(a => a.addEventListener("click", e => {
+  e.preventDefault(); const el = $("#" + a.dataset.go); scrollTo({ top: el.offsetTop, behavior: RM ? "auto" : "smooth" });
+}));
+
+// ===== WebGL =====
+let gl = null, planes = [], bgU, cam, scene, bgScene, bgCam, renderer;
+const target = { a: new THREE.Color(HOME[0]), b: new THREE.Color(HOME[1]) };
+let loaded = 0;
+const done = () => { if (++loaded === P.length) ready(); };
+
+try {
+  renderer = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.autoClear = false;
+  scene = new THREE.Scene(); bgScene = new THREE.Scene(); bgCam = new THREE.Camera();
+  cam = new THREE.PerspectiveCamera(50, 1, 1, 3000);
+
+  // Fondo líquido: ruido fractal deformado que fluye solo
+  bgU = { uT: { value: 0 }, uR: { value: new THREE.Vector2() }, uM: { value: new THREE.Vector2(.5, .5) }, uS: { value: 0 }, uA: { value: new THREE.Color(HOME[0]) }, uB: { value: new THREE.Color(HOME[1]) } };
+  bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ uniforms: bgU, depthTest: false,
+    vertexShader: "void main(){gl_Position=vec4(position.xy,0.,1.);}",
+    fragmentShader: `uniform float uT,uS;uniform vec2 uR,uM;uniform vec3 uA,uB;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.03+7.;a*=.5;}return v;}
+void main(){vec2 uv=gl_FragCoord.xy/uR;vec2 p=uv*vec2(uR.x/uR.y,1.)*1.5+vec2(0.,uS*.0004);float t=uT*.09;
+vec2 q=vec2(fbm(p+t),fbm(p+vec2(5.2,1.3)-t));
+vec2 r=vec2(fbm(p+3.*q+vec2(1.7,9.2)+t*1.4),fbm(p+3.*q+vec2(8.3,2.8)-t));
+float f=fbm(p+3.*r);
+vec3 c=mix(uA*.16,uA,smoothstep(.3,.85,f));
+c=mix(c,uB,smoothstep(.45,1.,length(q))*smoothstep(.35,.8,r.x)*.8);
+c+=uB*.35*exp(-7.*distance(uv,uM));
+c*=1.-.35*distance(uv,vec2(.5));
+c+=(h(gl_FragCoord.xy+uT)-.5)*.045;
+gl_FragColor=vec4(c,1.);}` })));
+
+  // Planos con las imágenes: se doblan con la velocidad del scroll y reaccionan al ratón
+  const geo = new THREE.PlaneGeometry(1, 1, 40, 40), loader = new THREE.TextureLoader();
+  $$(".pj").forEach((el, i) => {
+    const u = { uTx: { value: null }, uS: { value: new THREE.Vector2(1, 1) }, uI: { value: new THREE.Vector2(1, 1) }, uV: { value: 0 }, uT: { value: 0 }, uH: { value: 0 }, uL: { value: 0 } };
+    const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, transparent: true,
+      vertexShader: `varying vec2 vUv;uniform float uV,uT,uH;
+void main(){vUv=uv;vec3 p=position;float b=sin(uv.x*3.1416)*sin(uv.y*3.1416);
+p.z+=b*uV*-1.6+sin(uv.y*7.+uT*1.6+uv.x*3.)*(.006+uH*.018);
+p.y+=uV*.0016*b;
+gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+      fragmentShader: `varying vec2 vUv;uniform sampler2D uTx;uniform vec2 uS,uI;uniform float uV,uT,uH,uL;
+void main(){float k=max(uS.x/uI.x,uS.y/uI.y);vec2 uv=(vUv-.5)*uS/(uI*k)*(1.-.1*uH)+.5;
+uv+=vec2(sin(vUv.y*9.+uT*2.),cos(vUv.x*9.+uT*2.))*(.002+.006*uH);
+float o=uV*.0007+uH*.004;
+vec4 c=vec4(texture2D(uTx,uv+vec2(o,0.)).r,texture2D(uTx,uv).g,texture2D(uTx,uv-vec2(o,0.)).b,1.);
+gl_FragColor=vec4(c.rgb,uL);}` }));
+    m.visible = false; scene.add(m);
+    planes.push({ el, m, u, h: 0, rx: 0, ry: 0 });
+    loader.load(A(P[i].cover), tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, done);
+    el.addEventListener("pointerenter", () => { planes[i].hover = 1; target.a.set(P[i].ac); target.b.set(P[i].ac).offsetHSL(.12, 0, .16); if (FINE) cu(1); });
+    el.addEventListener("pointerleave", () => { planes[i].hover = 0; target.a.set(HOME[0]); target.b.set(HOME[1]); cu(0); });
   });
-  el.style.setProperty("--o", o + "ms");
-}
+} catch (err) { document.body.classList.add("nogl"); setTimeout(ready, 300); }
 
-// ===== Vistas =====
-function home() {
-  const names = P.map(p => `<span>${p.title}</span>`).join(""), half = names + names;
-  const cards = P.map((p, i) => `<a class="cell rv" href="#/p/${p.id}" style="--dl:${(i % 2) * 90}ms"><div class="tilt"><img src="${A(p.cover)}" alt="${p.title}: ${p.sub}" loading="lazy" style="object-position:${p.pos || "top"}"><div class="cap"><b>${p.title}</b><span>${p.sub}</span></div></div></a>`).join("");
-  const tags = ["Todo", ...new Set(P.flatMap(p => p.tags))];
-  const btns = tags.map((t, i) => `<button data-t="${t}" aria-selected="${i === 0}">${t}</button>`).join("");
-  const words = "Del logotipo al vaso, de la carta a la fachada. Cada pieza se diseña como parte de un mismo sistema.".split(" ").map(w => `<span class="sw">${w} </span>`).join("");
-  return `<section class="hero" id="top"><h1 class="disp sp">Diseño gráfico</h1><p class="cyc">Hago <em id="cyc"></em></p>
-  <p class="sub">Identidades, cartas, cartelería y piezas editoriales para negocios con carácter.</p><i class="cue"></i></section>
-  <div class="band" aria-hidden="true"><div class="track">${half}${half}</div></div>
-  <section class="top" id="trabajos"><div class="wrap"><div class="hdr"><h2 class="disp sp">Trabajos</h2><div class="seg" id="flt"><i class="ind"></i>${btns}</div></div><div class="grid">${cards}</div></div></section>
-  <section class="msg"><div class="wrap"><p id="st">${words}</p></div></section>
-  <footer class="ft wrap"><p class="disp rv">Gracias por mirar</p><a href="#/" data-go="top">Volver arriba</a></footer>`;
+function resize() {
+  W = innerWidth; H = innerHeight;
+  if (!renderer) return;
+  renderer.setSize(W, H); bgU.uR.value.set(W * renderer.getPixelRatio(), H * renderer.getPixelRatio());
+  cam.aspect = W / H; cam.position.z = 800; cam.fov = 2 * Math.atan(H / 2 / 800) * 180 / Math.PI; cam.updateProjectionMatrix();
 }
-function proj(p) {
-  const n = P[(P.indexOf(p) + 1) % P.length]; let g = "", row = "", rc = "";
-  const flush = () => { if (row) { g += `<div class="row">${row}</div><p>${rc}</p>`; row = rc = ""; } };
-  p.imgs.forEach(([f, c, s]) => {
-    const im = `<img src="${A(f)}" alt="${p.title}: ${c || rc}">`;
-    if (s) { row += `<figure class="fig sm">${im}</figure>`; rc = rc || c; }
-    else { flush(); g += `<figure class="fig">${im}<figcaption>${c}</figcaption></figure>`; }
-  });
-  flush();
-  return `<section class="pt wrap"><a class="back" href="#/" data-go="trabajos">Todos los trabajos</a><h1 class="disp sp">${p.title}</h1>
-  <div class="meta rv"><p class="lead">${p.desc}</p><ul class="tags">${p.tags.map(t => `<li>${t}</li>`).join("")}</ul></div></section>
-  <section class="gal wrap">${g}</section>
-  <a class="next" href="#/p/${n.id}"><small>Siguiente proyecto</small><span class="disp">${n.title}</span></a>`;
-}
+addEventListener("resize", resize); resize();
 
-// ===== Interacciones de la portada =====
-function initHome() {
-  const f = $("#flt"), ind = $(".ind", f), cells = $$(".cell");
-  const lay = () => cells.filter(c => !c.hidden).forEach((c, i) => c.style.gridColumn = "span " + [7, 5, 5, 7][i % 4]);
-  f.onclick = e => {
-    const b = e.target.closest("button"); if (!b) return;
-    $$("button", f).forEach(x => x.setAttribute("aria-selected", x === b));
-    ind.style.left = b.offsetLeft + "px"; ind.style.width = b.offsetWidth + "px";
-    cells.forEach((c, i) => { c.hidden = !(b.dataset.t === "Todo" || P[i].tags.includes(b.dataset.t)); c.classList.remove("in"); });
-    lay(); cells.filter(c => !c.hidden).forEach((c, i) => setTimeout(() => c.classList.add("in"), 60 + i * 90));
-  };
-  lay();
-  $$(".tilt").forEach(t => {
-    t.onpointermove = e => {
-      const r = t.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-      t.style.transform = `perspective(900px) rotateY(${(x - .5) * 14}deg) rotateX(${(.5 - y) * 14}deg) scale(1.02)`;
-      t.style.setProperty("--px", x * 2 - 1); t.style.setProperty("--py", y * 2 - 1);
-      t.style.setProperty("--gx", x * 100 + "%"); t.style.setProperty("--gy", y * 100 + "%");
-    };
-    t.onpointerleave = () => { t.style.transform = ""; t.style.setProperty("--px", 0); t.style.setProperty("--py", 0); };
-  });
-  const el = $("#cyc"), W = ["identidades", "cartas", "cartelería", "revistas"]; let k = 0;
-  const put = () => { const w = W[k++ % W.length]; el.textContent = ""; [...w].forEach((ch, j) => { const l = document.createElement("span"); l.className = "lt"; l.textContent = ch; l.style.setProperty("--i", j); el.append(l); }); };
-  put(); T.push(setInterval(put, 2600));
-}
+// ===== Cursor =====
+const cuEl = $("#cu"), cuT = $("span", cuEl); let cx = 0, cy = 0;
+function cu(on) { cuEl.classList.toggle("big", !!on); cuT.textContent = "Ver"; }
+$$("#hd a, .ft a").forEach(a => { a.addEventListener("pointerenter", () => cuEl.style.transform = "scale(2.4)"); a.addEventListener("pointerleave", () => cuEl.style.transform = ""); });
 
-// ===== Escena 3D de fondo =====
-const scene = (() => {
-  const nop = { set() {}, frame() {}, size() {} };
-  if (!window.THREE) return nop;
-  let rd; try { rd = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: !LITE, alpha: true }); } catch (e) { return nop; }
-  rd.setPixelRatio(Math.min(devicePixelRatio, LITE ? 1.5 : 2));
-  const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(50, 1, .1, 100); cam.position.z = 7;
-  const c = document.createElement("canvas"); c.width = 256; c.height = 128; const g = c.getContext("2d"), gr = g.createLinearGradient(0, 0, 0, 128);
-  gr.addColorStop(0, "#fff"); gr.addColorStop(.5, "#445"); gr.addColorStop(1, "#99a"); g.fillStyle = gr; g.fillRect(0, 0, 256, 128);
-  g.fillStyle = "#fff"; g.fillRect(30, 24, 40, 10); g.fillRect(160, 40, 60, 8);
-  const env = new THREE.CanvasTexture(c); env.mapping = THREE.EquirectangularReflectionMapping;
-  const G = [new THREE.DodecahedronGeometry(1.7, 0), new THREE.TorusKnotGeometry(1.1, .32, 120, 14), new THREE.IcosahedronGeometry(1.7, 1), new THREE.BoxGeometry(2, 2, 2, 3, 3, 3), new THREE.TorusGeometry(1.3, .5, 14, 40), new THREE.CylinderGeometry(1, 1.3, 2.2, 8, 3), new THREE.OctahedronGeometry(1.8)];
-  const tg = new THREE.Color(HOME_AC), pv = new THREE.Group(); sc.add(pv);
-  const wire = new THREE.Mesh(G[0], new THREE.MeshBasicMaterial({ wireframe: true, transparent: true, opacity: .5, color: HOME_AC }));
-  const shell = new THREE.Mesh(G[0], new THREE.MeshPhysicalMaterial({ color: HOME_AC, metalness: .2, roughness: .05, transparent: true, opacity: .22, envMap: env, envMapIntensity: 2, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false }));
-  const core = new THREE.Mesh(new THREE.OctahedronGeometry(.7), new THREE.MeshStandardMaterial({ color: 0xe9e9ee, metalness: 1, roughness: .12, envMap: env, flatShading: true }));
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(2.6, .025, 12, 140), new THREE.MeshBasicMaterial({ color: HOME_AC })); ring.rotation.x = 1.2;
-  pv.add(wire, shell, core, ring);
-  const N = LITE ? 200 : 500, pos = new Float32Array(N * 3);
-  for (let i = 0; i < N; i++) { const r = 4 + Math.random() * 6, a = Math.random() * 6.28, b = Math.random() * 3.14; pos.set([r * Math.sin(b) * Math.cos(a), r * Math.cos(b) * .7, r * Math.sin(b) * Math.sin(a) - 2], i * 3); }
-  const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  const pts = new THREE.Points(pg, new THREE.PointsMaterial({ size: .05, color: HOME_AC, transparent: true, opacity: .7, depthWrite: false })); sc.add(pts);
-  sc.add(new THREE.AmbientLight(0xffffff, .4)); const key = new THREE.DirectionalLight(0xffffff, 1); key.position.set(3, 4, 5); sc.add(key);
-  const mats = [wire.material, shell.material, ring.material, pts.material];
-  let pop = 0, proj = 0, tmx = 0, tmy = 0, ly = 0;
-  const size = () => { rd.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); };
-  size();
-  return {
-    size,
-    set(i, color, isProj) { wire.geometry = shell.geometry = G[i]; tg.set(color); proj = isProj ? 1 : 0; pop = 1; if (RM) { mats.forEach(m => m.color.copy(tg)); this.frame(0); } },
-    frame(t) {
-      const y = scrollY, p = Math.min(y / innerHeight, 1.4), wide = innerWidth > 820, dv = (y - ly) * .0015; ly = y;
-      tmx += (mouse.x - tmx) * .05; tmy += (mouse.y - tmy) * .05;
-      pv.position.x += ((proj ? (wide ? 3 : 0) : (wide ? p * 2.8 : 0)) - pv.position.x) * .06;
-      pv.position.y += ((proj ? .3 : p * 1.1) - pv.position.y) * .06;
-      const s = pv.scale.x + (((proj ? .8 : 1 - .3 * Math.min(p, 1)) * (1 + pop * .6)) - pv.scale.x) * .08; pv.scale.setScalar(s);
-      if (!RM) { pv.rotation.y += .004 + pop * .08 + dv; core.rotation.y -= .01; core.rotation.x += .006; ring.rotation.z += .004; pts.rotation.y += .0006; }
-      pv.rotation.x = tmy * .5 + Math.sin(t * .0004) * .2; pop *= .94;
-      cam.position.x = tmx * .6; cam.position.y = -tmy * .4; cam.lookAt(0, 0, 0);
-      if (!RM) mats.forEach(m => m.color.lerp(tg, .06));
-      rd.render(sc, cam);
-    }
-  };
-})();
-
-// ===== Montaje, revelado y transición de página =====
-const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12, rootMargin: "0px 0px -6% 0px" });
-const pf = h => P.find(p => h === "/p/" + p.id);
-
-function mount(h) {
-  T.forEach(clearInterval); T = []; cur.classList.remove("big"); cur.textContent = "";
-  const p = pf(h), app = $("#app"); R = h;
-  app.classList.remove("go"); app.innerHTML = p ? proj(p) : home();
-  document.documentElement.style.setProperty("--ac", p ? p.ac : HOME_AC);
-  document.title = (p ? p.title + " · " : "") + "Tu Nombre · Diseño gráfico";
-  $$(".sp", app).forEach((e, i) => split(e, i * 120));
-  scene.set(p ? p.g : 0, p ? p.ac : HOME_AC, !!p);
-  if (!p) initHome();
-}
-function reveal() {
-  const app = $("#app"); app.classList.add("go");
-  $$(".rv,.fig", app).forEach(e => io.observe(e));
-  const f = $("#flt"); if (f) { const b = $("[aria-selected=true]", f), i = $(".ind", f); i.style.left = b.offsetLeft + "px"; i.style.width = b.offsetWidth + "px"; }
-  onScroll();
-}
-async function nav() {
-  if (busy) return; const h = hash(); if (h === R) return; busy = true;
-  const p = pf(h), cv = $("#cv");
-  cv.style.setProperty("--cvac", p ? p.ac : HOME_AC); $("#cvt").textContent = p ? p.title : "Inicio";
-  cv.className = "in"; await wait(950);
-  mount(h); scrollTo({ top: 0, behavior: "instant" });
-  if (pend) { const t = $("#" + pend); pend = null; if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY, behavior: "instant" }); }
-  cv.className = "out"; reveal(); await wait(950); cv.className = ""; busy = false;
-  if (hash() !== R) nav();
-}
-
-// ===== Scroll, cursor y bucle =====
-function onScroll() {
-  const y = scrollY, h = document.documentElement.scrollHeight - innerHeight;
-  $("#bar").style.transform = `scaleX(${h > 0 ? y / h : 0})`;
-  $("#hd").classList.toggle("hide", y > lastY && y > 120); lastY = y;
-  const st = $("#st"); if (st) {
-    const r = st.getBoundingClientRect(), pr = Math.max(0, Math.min(1, (innerHeight * .8 - r.top) / (r.height + innerHeight * .3))), w = $$(".sw", st), n = Math.round(pr * w.length);
-    w.forEach((x, i) => x.classList.toggle("on", i < n));
+// ===== Bucle =====
+const mq = [{ el: $("#m1"), x: 0, d: -1 }, { el: $("#m2"), x: 0, d: 1 }];
+const hero = $("#h1"); let t0 = performance.now(), sSm = 0;
+function loop(now) {
+  const t = (now - t0) / 1000, ty = scrollY;
+  const prev = sy; sy = lerp(sy, ty, RM ? 1 : .085); vel = lerp(vel, clamp(sy - prev, -60, 60), .12);
+  sc.style.transform = `translate3d(0,${-sy}px,0)`;
+  // Titular 3D sigue al ratón
+  hero.style.setProperty("--rx", (mouse.ny - .5) * 16 + "deg"); hero.style.setProperty("--ry", (mouse.nx - .5) * 22 + "deg");
+  // Bandas: avanzan solas y aceleran con el scroll
+  mq.forEach(m => { const w = m.el.scrollWidth / 2; m.x += m.d * (1.1 + Math.abs(vel) * .7) + vel * .0; m.x = ((m.x % w) - w) % w; m.el.style.transform = `translate3d(${m.x}px,0,0) skewX(${-vel * .25}deg)`; });
+  // Cursor
+  cx = lerp(cx, mouse.x, .2); cy = lerp(cy, mouse.y, .2); if (FINE) cuEl.style.translate = `${cx}px ${cy}px`;
+  if (renderer) {
+    bgU.uT.value = RM ? 0 : t; bgU.uS.value = sy; bgU.uM.value.set(lerp(bgU.uM.value.x, mouse.nx, .05), lerp(bgU.uM.value.y, mouse.ny, .05));
+    bgU.uA.value.lerp(target.a, .06); bgU.uB.value.lerp(target.b, .06);
+    planes.forEach(p => {
+      const r = p.el.firstElementChild.getBoundingClientRect(), vis = r.bottom > -200 && r.top < H + 200 && p.u.uTx.value;
+      p.m.visible = !!vis; if (!vis) return;
+      p.hover = p.hover || 0; p.h = lerp(p.h, p.hover, .08);
+      const lx = clamp((mouse.x - (r.left + r.width / 2)) / r.width, -.5, .5), ly = clamp((mouse.y - (r.top + r.height / 2)) / r.height, -.5, .5);
+      p.ry = lerp(p.ry, p.h * lx * .5, .08); p.rx = lerp(p.rx, p.h * ly * .5, .08);
+      p.m.rotation.set(p.rx, p.ry, 0); p.m.scale.set(r.width * (1 + p.h * .04), r.height * (1 + p.h * .04), 1);
+      p.m.position.set(r.left + r.width / 2 - W / 2, H / 2 - (r.top + r.height / 2), p.h * 60);
+      const clip = r.top; p.u.uS.value.set(r.width, r.height); p.u.uV.value = vel; p.u.uT.value = t; p.u.uH.value = p.h;
+      p.u.uL.value = lerp(p.u.uL.value, p.el.classList.contains("in") ? 1 : 0, .07);
+    });
+    renderer.clear(); renderer.render(bgScene, bgCam); renderer.clearDepth(); renderer.render(scene, cam);
   }
-}
-addEventListener("scroll", onScroll, { passive: true });
-addEventListener("resize", () => scene.size());
-const cur = $("#cursor"); let cx = 0, cy = 0, tx = 0, ty = 0;
-addEventListener("pointermove", e => {
-  mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = e.clientY / innerHeight * 2 - 1; tx = e.clientX; ty = e.clientY;
-  const h = e.target.closest(".cell"); cur.classList.toggle("big", !!h); cur.textContent = h ? "Ver" : "";
-});
-document.addEventListener("click", e => {
-  const a = e.target.closest("[data-go]"); if (!a) return; const id = a.dataset.go;
-  if (R === "/") { e.preventDefault(); id === "top" ? scrollTo({ top: 0, behavior: "smooth" }) : $("#" + id).scrollIntoView({ behavior: "smooth" }); }
-  else pend = id === "top" ? null : id;
-});
-function loop(t) {
-  scene.frame(t); cx += (tx - cx) * .2; cy += (ty - cy) * .2; cur.style.transform = `translate(${cx}px,${cy}px)`;
   requestAnimationFrame(loop);
 }
 
-// ===== Arranque con pantalla de carga =====
-(async function boot() {
-  const t = $("#ldt"); t.textContent = "Tu Nombre"; split(t); $("#ld").classList.add("go");
-  await Promise.all([document.fonts ? document.fonts.ready : 0, wait(1400)]);
-  mount(hash()); $("#ld").classList.add("off"); reveal();
-  addEventListener("hashchange", nav);
-  if (RM) scene.frame(0); else requestAnimationFrame(loop);
+// ===== Carga =====
+let ldv = 0, isReady = false;
+function ready() { isReady = true; }
+const ldn = $("#ldn"), ld = $("#ld");
+(function count() {
+  ldv = Math.min(isReady ? 100 : 90, ldv + (isReady ? 5 : 1.3));
+  ldn.textContent = Math.round(ldv);
+  if (ldv >= 100) { ld.classList.add("off"); document.body.classList.add("go"); return; }
+  requestAnimationFrame(count);
 })();
+setTimeout(ready, 4000);
+requestAnimationFrame(loop);
+
+// ===== Proyecto abierto =====
+const ov = $("#ov"), x = document.createElement("button"); x.id = "x"; x.textContent = "Cerrar"; document.body.append(x);
+function open(i, e) {
+  const p = P[i], big = p.imgs.filter(m => !m[2]), sm = p.imgs.filter(m => m[2]);
+  ov.style.setProperty("--pc", p.ac); ov.style.setProperty("--ox", (e && e.clientX || W / 2) + "px"); ov.style.setProperty("--oy", (e && e.clientY || H / 2) + "px");
+  ov.innerHTML = `<div class="in"><h2>${p.t}</h2><p class="d">${p.d}</p><ul class="tg">${p.tags.map(t => `<li>${t}</li>`).join("")}</ul>
+    ${big.map(([f, c]) => `<figure><img src="${A(f)}" alt="${p.t}: ${c}"><figcaption>${c}</figcaption></figure>`).join("")}
+    ${sm.length ? `<div class="sm">${sm.map(([f, c]) => `<img src="${A(f)}" alt="${p.t}: ${c || sm[0][1]}">`).join("")}</div>` : ""}</div>`;
+  ov.hidden = false; ov.scrollTop = 0; document.documentElement.style.overflow = "hidden"; ovOpen = true; document.body.classList.add("ovo");
+  requestAnimationFrame(() => ov.classList.add("open"));
+  const fo = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("on"); fo.unobserve(en.target); } }), { root: ov, threshold: .1 });
+  $$("figure", ov).forEach(f => fo.observe(f)); x.focus({ preventScroll: true });
+}
+function close() {
+  ov.classList.remove("open"); document.body.classList.remove("ovo"); document.documentElement.style.overflow = ""; ovOpen = false;
+  setTimeout(() => { if (!ovOpen) ov.hidden = true; }, 900);
+}
+$$(".pj").forEach(el => { const go = e => open(+el.dataset.i, e); el.addEventListener("click", go); el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }); });
+x.addEventListener("click", close); addEventListener("keydown", e => { if (e.key === "Escape" && ovOpen) close(); });
