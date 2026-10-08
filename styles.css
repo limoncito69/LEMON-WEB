@@ -70,10 +70,8 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
 .pl img{width:100%;height:100%;object-fit:cover;opacity:1}
 .pj.gl .pl img{opacity:0}
 .nogl .pl img{opacity:1}
-/* el título va sobre la imagen y solo la solapa por su borde: se lee entero sobre el fondo */
-.pj h2{order:-1;position:relative;z-index:2;align-self:flex-start;margin-bottom:-.3em;font:800 min(11.5vw,200px)/.9 var(--fd);letter-spacing:-.045em;pointer-events:none;color:#fff;white-space:normal;width:max-content;max-width:100%}
-/* el título no se mezcla con la foto: el cambio de color solo aparece al pasar el cursor */
-@media (hover:hover) and (pointer:fine){.pj:hover h2{mix-blend-mode:difference}}
+/* el título va encima de la imagen, separado de ella: sin solapes y con el efecto de color sobre el fondo */
+.pj h2{order:-1;position:relative;z-index:2;align-self:flex-start;margin-bottom:clamp(14px,2.4vw,36px);font:800 min(11.5vw,200px)/.9 var(--fd);letter-spacing:-.045em;pointer-events:none;mix-blend-mode:difference;white-space:normal;width:max-content;max-width:100%}
 .pj:nth-child(even) h2{align-self:flex-end;text-align:right}
 .info{width:min(70%,calc(74vh*var(--ar,1.4)));margin-top:18px;transition:opacity .4s}
 .info p{color:var(--mut);font-size:16px}
@@ -188,7 +186,7 @@ body.ovo #pg{opacity:1}
   .pj{width:calc(100% - 32px);margin-bottom:15vh}
   .pj,.pj:nth-child(even){align-items:flex-start}
   .pl{width:min(100%,calc(66vh*var(--ar,1.4)));height:auto}
-  .pj h2,.pj:nth-child(even) h2{align-self:flex-start;text-align:left;font-size:clamp(40px,13.5vw,96px);line-height:.92;margin-bottom:-.28em}
+  .pj h2,.pj:nth-child(even) h2{align-self:flex-start;text-align:left;font-size:clamp(40px,13.5vw,96px);line-height:.92;margin-bottom:14px}
   .info,.pj:nth-child(even) .info{width:100%;max-width:none;margin-top:16px}
   .mq{font-size:24vw}
   .ab{width:calc(100% - 32px)}
