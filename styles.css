@@ -5,12 +5,13 @@ body{color:var(--ink);font:400 18px/1.5 var(--fb);overflow-x:hidden;-webkit-text
 .wd{display:inline-block;white-space:nowrap}
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
-#gl{position:absolute;left:0;top:0;width:100vw;height:100vh;z-index:0;will-change:transform}
+#gl{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
 /* Todo el contenido va sobre el lienzo y se mezcla con él: el texto invierte su color como el logo */
 .hero,.mqs,.wk,.say,.ft{position:relative}
 .hero,.mqs,.say,.ft,.pj .info{mix-blend-mode:difference}
-#sc{position:fixed;top:0;left:0;width:100%;z-index:1;will-change:transform;overflow-x:clip}
-#fb{display:none;position:absolute;left:0;top:0;width:100vw;height:100vh;z-index:0;will-change:transform;overflow:hidden;background:#1a1466}
+/* Scroll nativo: #sc ya no es una capa fija gigante, es un contenedor normal */
+#sc{width:100%}
+#fb{display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;background:#1a1466}
 #fb i{position:absolute;width:75vmax;height:75vmax;border-radius:50%;filter:blur(70px);opacity:.7;animation:blob 16s ease-in-out infinite alternate}
 #fb i:nth-child(1){left:-20vmax;top:-20vmax;background:rgb(var(--ca,58 43 255))}
 #fb i:nth-child(2){right:-25vmax;top:10vh;background:rgb(var(--cb,255 61 139));animation-delay:-5s;animation-duration:20s}
@@ -18,8 +19,6 @@ img{display:block;max-width:100%}
 @keyframes blob{to{transform:translate(28vw,18vh) scale(1.35) rotate(40deg)}}
 body.nogl #fb{display:block}
 body.nogl #gl{display:none}
-body.nogl .pl img{transition:transform .8s var(--e)}
-body.nogl .pj:hover .pl img{transform:scale(1.05)}
 :focus-visible{outline:3px solid #fff;outline-offset:4px}
 
 /* Carga */
@@ -65,10 +64,8 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
 .wk{padding:12vh 0 8vh}
 .pj{position:relative;width:min(1300px,100% - 48px);margin:0 auto 14vh;display:flex;cursor:pointer}
 .pj:nth-child(even){justify-content:flex-end}
-.pl{width:58%;height:clamp(380px,68vh,760px);position:relative}
-.pl img{width:100%;height:100%;object-fit:cover;opacity:1}
-.pj.gl .pl img{opacity:0}
-.nogl .pl img{opacity:1}
+.pl{width:58%;height:clamp(380px,68vh,760px);position:relative;overflow:hidden;background:rgb(255 255 255/.08)}
+.pl img{width:100%;height:100%;object-fit:cover;opacity:1;transform:scale(1.14);transform-origin:center;backface-visibility:hidden;will-change:transform}
 .pj h2{position:absolute;z-index:2;top:50%;left:0;transform:translateY(-50%);font:800 min(11.5vw,200px)/.9 var(--fd);letter-spacing:-.045em;pointer-events:none;mix-blend-mode:difference;white-space:normal;width:max-content;max-width:100%}
 .pj:nth-child(even) h2{left:auto;right:0}
 .info{position:absolute;bottom:0;left:0;max-width:19em;transform:translateY(calc(100% + 14px));transition:opacity .4s}
@@ -77,7 +74,8 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
 .info b{display:block;font-weight:600;margin-bottom:2px}
 .pj.rv .pl,.pj.rv h2{clip-path:inset(0 0 100% 0)}
 .pj .pl,.pj h2{transition:clip-path 1.3s var(--e)}
-.pj.in .pl,.pj.in h2{clip-path:inset(-60px -60px -60px -60px)}
+.pj.in .pl{clip-path:inset(0)}
+.pj.in h2{clip-path:inset(-60px)}
 
 /* Frase y pie */
 .say{padding:10vh 6vw 16vh}
@@ -90,7 +88,9 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
 .ft a{display:inline-block;margin-top:34px;border-bottom:2px solid #fff;padding-bottom:3px;font-weight:500}
 
 /* Sobre mí */
-.ab{position:relative;width:min(1240px,100% - 48px);margin:0 auto;padding:14vh 0 8vh;mix-blend-mode:difference}
+.ab{position:relative;width:min(1240px,100% - 48px);margin:0 auto;padding:14vh 0 8vh}
+/* El blend se aplica por bloques (no a toda la sección): una capa de mezcla de miles de px no se pinta bien */
+.ab>*{mix-blend-mode:difference}
 .sr{opacity:0;transform:translateY(46px);transition:opacity 1s var(--e) var(--dl,0ms),transform 1.1s var(--e) var(--dl,0ms)}
 .sr.in{opacity:1;transform:none}
 .k{color:var(--mut);font-size:clamp(16px,1.4vw,20px)}
@@ -184,4 +184,3 @@ body.ovo #pg{opacity:1}
   .spin{animation-duration:40s}
   .track,.mq{animation-duration:60s}
 }
-.pj.fb .pl img{opacity:1}
