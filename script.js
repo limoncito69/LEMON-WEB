@@ -240,14 +240,16 @@ requestAnimationFrame(loop);
 const ov = $("#ov"), x = document.createElement("button"), pg = document.createElement("i");
 x.id = "x"; x.textContent = "Cerrar"; pg.id = "pg"; document.body.append(x, pg);
 const fo = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("on"); fo.unobserve(en.target); } }), { root: ov, threshold: .1 });
+// Si una imagen no existe en /assets, se oculta en vez de mostrar un hueco roto
+function miss(el) { const f = el.closest("figure"); if (f) return f.remove(); const w = el.parentNode; el.remove(); if (w && !w.children.length) w.remove(); }
 let cur = 0;
 function openPj(i, e) {
   cur = i; const p = P[i], nx = (i + 1) % P.length, big = p.imgs.filter(m => !m[2]), sm = p.imgs.filter(m => m[2]); let k = 0;
   ov.style.setProperty("--pc", p.ac); ov.style.setProperty("--ox", (e && e.clientX || W / 2) + "px"); ov.style.setProperty("--oy", (e && e.clientY || H / 2) + "px");
   const title = p.t.split(" ").map(w => `<span class="wd">${[...w].map(c => `<span class="c" style="--i:${k++}">${c}</span>`).join("")}</span>`).join(" ");
   ov.innerHTML = `<div class="in"><h2 aria-label="${p.t}">${title}</h2><p class="d">${p.d}</p><ul class="tg">${p.tags.map((t, n) => `<li style="--i:${n}">${t}</li>`).join("")}</ul>
-    ${big.map(([f, c]) => isPdf(f) ? `<div class="pdfw" data-pdf="${f}"><p class="ph">Cargando PDF…</p></div>` : `<figure><img src="${A(f)}" alt="${p.t}: ${c}"><figcaption>${c}</figcaption></figure>`).join("")}
-    ${sm.length ? `<div class="sm">${sm.map(([f, c], n) => `<img style="--i:${n}" src="${A(f)}" alt="${p.t}: ${c || sm[0][1]}">`).join("")}</div>` : ""}
+    ${big.map(([f, c]) => isPdf(f) ? `<div class="pdfw" data-pdf="${f}"><p class="ph">Cargando PDF…</p></div>` : `<figure><img src="${A(f)}" alt="${p.t}: ${c}" onerror="miss(this)"><figcaption>${c}</figcaption></figure>`).join("")}
+    ${sm.length ? `<div class="sm">${sm.map(([f, c], n) => `<img style="--i:${n}" src="${A(f)}" alt="${p.t}: ${c || sm[0][1]}" onerror="miss(this)">`).join("")}</div>` : ""}
     <a class="nx" href="#" data-n="${nx}"><small>Siguiente proyecto</small><span>${words(P[nx].t)}</span></a></div>`;
   ov.hidden = false; ov.scrollTop = 0; document.documentElement.style.overflow = "hidden"; ovOpen = true; document.body.classList.add("ovo");
   fitAll(); requestAnimationFrame(() => { ov.classList.add("open"); ovLoop(); });
