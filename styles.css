@@ -161,6 +161,17 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
 #ov .nx small{display:block;color:var(--mut);font-size:17px;margin-bottom:6px}
 #ov .nx>span{display:block;font:800 min(11vw,170px)/.92 var(--fd);letter-spacing:-.045em;color:transparent;-webkit-text-stroke:2px #fff;transition:color .5s,transform .8s var(--e)}
 #ov .nx:hover>span{color:#fff;transform:translateX(2vw)}
+/* Transición entre proyectos: limón que se llena */
+#lm{position:fixed;inset:0;z-index:92;display:grid;place-content:center;justify-items:center;gap:clamp(8px,2vh,22px);background:linear-gradient(125deg,var(--pc,#1a1466),color-mix(in srgb,var(--pc,#1a1466) 45%,#000) 50%,var(--pc,#1a1466));background-size:300% 300%;animation:bgm 14s ease-in-out infinite;clip-path:inset(100% 0 0 0);visibility:hidden;pointer-events:none;transition:clip-path .8s var(--e)}
+#lm.on{visibility:visible;clip-path:inset(0);pointer-events:auto}
+#lm.on.out{clip-path:inset(0 0 100% 0);pointer-events:none;transition-duration:1s}
+.lmw{position:relative;width:min(48vw,32vh,260px);aspect-ratio:1;animation:lmf 3.4s ease-in-out infinite}
+.lmw svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.lmo{fill:none;stroke:rgb(255 255 255/.5);stroke-width:2.5;stroke-linejoin:round}
+.lmf{fill:#fff;clip-path:inset(calc(100% - var(--p,0%)) 0 0 0)}
+@keyframes lmf{50%{transform:rotate(-7deg) translateY(-2%)}}
+.lmt{font:800 clamp(30px,7vw,84px)/1 var(--fd);letter-spacing:-.045em;text-align:center;padding:0 16px}
+.lmn{font:600 17px var(--fb);color:var(--mut);font-variant-numeric:tabular-nums}
 #x{position:fixed;top:18px;right:24px;z-index:95;border:0;border-radius:99px;background:#fff;color:#111;font:600 16px var(--fb);padding:10px 22px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .4s .5s}
 body.ovo #x{opacity:1;pointer-events:auto}
 #pg{position:fixed;top:0;left:0;width:100%;height:4px;background:#fff;transform:scaleX(0);transform-origin:left;z-index:96;opacity:0;pointer-events:none}
