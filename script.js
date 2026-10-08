@@ -8,7 +8,7 @@ const P = [
       ["mixet-07.png","Packaging premium: envoltorio"],["mixet-08.png","Packaging premium: caja desplegada"],["mixet-09.png","Packaging spicy: envoltorio"],["mixet-10.png","Packaging spicy: caja desplegada"],
       ["mixet-11.png","Diseño de vasos"],["mixet-12.png","Folleto de platos: anverso"],["mixet-13.png","Folleto de platos: reverso"],["pegatina.jpg","Pegatina"],["rotulo.jpg","Rótulo circular"],
       ["destacada-13.jpg","Portadas de destacadas y foto de perfil",1],["destacada-14.jpg","",1],["destacada-15.jpg","",1],["destacada-16.jpg","",1],["mixet-perfil.jpg","",1]] },
-  { id:"loscarmenes", ar:1.409, t:"Los Carmenes", s:"Carta de tapas, vitrina y brioches", tags:["Cartas"], ac:"#e08a2e", cover:"carmenes-2.jpg",
+  { id:"loscarmenes", ar:1.409, t:"Los Carmenes", s:"Carta para Bar y Restaurante", tags:["Cartas"], ac:"#e08a2e", cover:"carmenes-2.jpg",
     d:"Portada y carta para un gastrobar, con la ilustración de la pita como fondo y una paleta cálida de color miel.",
     imgs:[["carmenes-1.jpg","Portada de la carta de bar"],["carmenes-2.jpg","Carta de bar: tapas, vitrina y brioches"],["carmenes-3.png","Carta de restaurante: portada desplegada"],["carmenes-4.png","Portada de la carta"],["carmenes-5.png","Contraportada con motivo de olas"],
       ["carmenes-6.png","De la huerta y entrantes"],["carmenes-7.png","Del mar, de la tierra y lo dulce"],["carmenes-8.png","Portada de la carta de vinos"],["carmenes-9.png","Contraportada de la carta de vinos"],["carmenes-10.png","Vinos: Riojas, Riberas y D.O. Almería"],["carmenes-11.png","Vinos blancos, rosados, cavas y champagne"]] },
