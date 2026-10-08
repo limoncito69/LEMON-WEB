@@ -38,9 +38,9 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
 #hd nav a::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:#fff;transform:scaleX(0);transform-origin:right;transition:transform .5s var(--e)}
 #hd nav a:hover::after{transform:scaleX(1);transform-origin:left}
 #cu{position:fixed;left:0;top:0;z-index:150;pointer-events:none;width:18px;height:18px;margin:-9px;border-radius:50%;background:#fff;mix-blend-mode:difference;display:grid;place-items:center;transition:width .5s var(--e),height .5s var(--e),margin .5s var(--e)}
-#cu span{font:600 15px var(--fb);color:#000;opacity:0;transition:opacity .3s}
-#cu.big{width:110px;height:110px;margin:-55px;mix-blend-mode:normal}
-#cu.big span{opacity:1}
+#cu span{font:600 18px/1 var(--fb);letter-spacing:0;color:#000;opacity:0;transition:opacity .3s}
+#cu.cb{width:110px;height:110px;margin:-55px;mix-blend-mode:normal}
+#cu.cb span{opacity:1}
 
 /* Portada: titular en 3D que flota solo y sigue al ratón */
 .hero{height:100vh;height:100svh;display:grid;place-content:center;justify-items:center;text-align:center;padding:90px 20px 40px;position:relative;perspective:1400px}
