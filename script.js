@@ -11,15 +11,17 @@ const P = [
   { id:"barberlopez", t:"Barber López", s:"Logotipo, rótulo y vinilo", tags:["Branding","Cartelería"], ac:"#6b6f8f", cover:"barber-logo-2.jpg",
     d:"Logotipo con navaja barbera, con y sin descriptor, y el vinilo para el escaparate de la peluquería.",
     imgs:[["barber-logo-2.jpg","Logotipo con descriptor"],["barber-logo-1.jpg","Logotipo"],["vinilo.jpg","Vinilo de escaparate"]] },
-  { id:"ginesperegrin", t:"Ginés Peregrín", s:"Carta de restaurante de autor", tags:["Cartas"], ac:"#a87c2a", cover:"gines-3.jpg",
+  { id:"ginesperegrin", t:"Ginés Peregrín", s:"Carta de restaurante de autor", tags:["Cartas"], ac:"#a87c2a", cover:"gines-01.jpg",
     d:"Carta con ilustraciones de ojo, nariz y boca que invitan a mirar, oler y degustar. Disponible en español, inglés y alemán.",
-    imgs:[["gines-3.jpg","Menú degustación y entrantes"],["gines-4.jpg","Carnes, pescados y postres"]] },
+    imgs:[["gines-01.jpg","Portada y contraportada"],["gines-02.jpg","Guardas con frases del restaurante"],["gines-03.jpg","Menú degustación y entrantes"],["gines-04.jpg","Carnes, pescados y postres"],
+      ["gines-05.jpg","Portada de la carta en inglés"],["gines-06.jpg","Guardas en inglés"],["gines-07.jpg","Tasting menu y starters"],["gines-08.jpg","Meat, fish y desserts"],
+      ["gines-09.jpg","Portada de la carta en alemán"],["gines-10.jpg","Guardas en alemán"],["gines-11.jpg","Menu Degustation y Vorspeisen"],["gines-12.jpg","Fleisch, Fisch y Desserts"],["gines-13.jpg","Fleisch, Fisch y Desserts, versión alternativa"]] },
   { id:"civitas", t:"Residencia Cívitas", s:"Folleto de bienvenida y precios", tags:["Editorial"], ac:"#e8501c", cover:"civitas-1.jpg",
     d:"Díptico con calendario académico, plano universitario, precios del curso y actividades de cada mes.",
     imgs:[["civitas-1.jpg","Cara exterior"],["civitas-2.jpg","Cara interior"]] },
-  { id:"experimenta96", t:"Experimenta 96", s:"Revista de cultura del diseño", tags:["Editorial"], ac:"#d0202e", cover:"rev-2.jpg",
+  { id:"experimenta96", t:"Experimenta 96", s:"Revista de cultura del diseño", tags:["Editorial"], ac:"#d0202e", cover:"experimenta-1.jpg",
     d:"Maquetación de un reportaje sobre René Magritte: portada, aperturas a doble página y tipografía con fuerte jerarquía.",
-    imgs:[["rev-1.jpg","Portada"],["rev-2.jpg","Apertura del reportaje"],["rev-3.jpg","Magritte, mucho más que surrealista"],["rev-4.jpg","Analizamos sus obras"]] }
+    imgs:[["experimenta-1.jpg","Portada"],["experimenta-2.jpg","René Magritte: apertura del reportaje"],["experimenta-3.jpg","Magritte, mucho más que surrealista"],["experimenta-4.jpg","Analizamos sus obras"],["experimenta-5.jpg","Los amantes y La condición humana"],["experimenta-6.jpg","Muerte, 1967"]] }
 ];
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
