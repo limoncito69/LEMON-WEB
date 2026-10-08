@@ -1,29 +1,29 @@
 // ===== Tus proyectos: edita textos, colores (ac) y orden aquí. Imágenes en /assets =====
 // imgs: [archivo, pie de foto, true si es pequeña (icono)]
 const P = [
-  { id:"mixet", t:"Mixet", s:"Identidad y piezas para sushi a domicilio", tags:["Branding","Cartelería"], ac:"#1fb5d4", cover:"mixet-01.png",
+  { id:"mixet", ar:2.095, t:"Mixet", s:"Identidad y piezas para sushi a domicilio", tags:["Branding","Cartelería"], ac:"#1fb5d4", cover:"mixet-01.png",
     d:"Logotipo de letras burbuja, sistema de color, folletos de platos, mupi de reparto, vasos, pegatina y rótulo circular.",
     imgs:[["mixet-01.png","Logotipo"],["mupi.jpg","Mupi de reparto"],
       ["mixet-03.png","Packaging classics: envoltorio"],["mixet-04.png","Packaging classics: caja desplegada"],["mixet-05.png","Packaging by mixet: envoltorio"],["mixet-06.png","Packaging by mixet: caja desplegada"],
       ["mixet-07.png","Packaging premium: envoltorio"],["mixet-08.png","Packaging premium: caja desplegada"],["mixet-09.png","Packaging spicy: envoltorio"],["mixet-10.png","Packaging spicy: caja desplegada"],
       ["mixet-11.png","Diseño de vasos"],["mixet-12.png","Folleto de platos: anverso"],["mixet-13.png","Folleto de platos: reverso"],["pegatina.jpg","Pegatina"],["rotulo.jpg","Rótulo circular"],
       ["destacada-13.jpg","Portadas de destacadas y foto de perfil",1],["destacada-14.jpg","",1],["destacada-15.jpg","",1],["destacada-16.jpg","",1],["mixet-perfil.jpg","",1]] },
-  { id:"loscarmenes", t:"Los Carmenes", s:"Carta de tapas, vitrina y brioches", tags:["Cartas"], ac:"#e08a2e", cover:"carmenes-2.jpg",
+  { id:"loscarmenes", ar:1.409, t:"Los Carmenes", s:"Carta de tapas, vitrina y brioches", tags:["Cartas"], ac:"#e08a2e", cover:"carmenes-2.jpg",
     d:"Portada y carta para un gastrobar, con la ilustración de la pita como fondo y una paleta cálida de color miel.",
     imgs:[["carmenes-1.jpg","Portada de la carta de bar"],["carmenes-2.jpg","Carta de bar: tapas, vitrina y brioches"],["carmenes-3.png","Carta de restaurante: portada desplegada"],["carmenes-4.png","Portada de la carta"],["carmenes-5.png","Contraportada con motivo de olas"],
       ["carmenes-6.png","De la huerta y entrantes"],["carmenes-7.png","Del mar, de la tierra y lo dulce"],["carmenes-8.png","Portada de la carta de vinos"],["carmenes-9.png","Contraportada de la carta de vinos"],["carmenes-10.png","Vinos: Riojas, Riberas y D.O. Almería"],["carmenes-11.png","Vinos blancos, rosados, cavas y champagne"]] },
-  { id:"barberlopez", t:"Barber López", s:"Logotipo, rótulo y vinilo", tags:["Branding","Cartelería"], ac:"#6b6f8f", cover:"barber-logo-2.jpg",
+  { id:"barberlopez", ar:1.98, t:"Barber López", s:"Logotipo, rótulo y vinilo", tags:["Branding","Cartelería"], ac:"#6b6f8f", cover:"barber-logo-2.jpg",
     d:"Logotipo con navaja barbera, con y sin descriptor, y el vinilo para el escaparate de la peluquería.",
     imgs:[["barber-logo-2.jpg","Logotipo con descriptor"],["barber-logo-1.jpg","Logotipo"],["vinilo.jpg","Vinilo de escaparate"]] },
-  { id:"ginesperegrin", t:"Ginés Peregrín", s:"Carta de restaurante de autor", tags:["Cartas"], ac:"#a87c2a", cover:"gines-01.jpg",
+  { id:"ginesperegrin", ar:1.504, t:"Ginés Peregrín", s:"Carta de restaurante de autor", tags:["Cartas"], ac:"#a87c2a", cover:"gines-01.jpg",
     d:"Carta con ilustraciones de ojo, nariz y boca que invitan a mirar, oler y degustar. Disponible en español, inglés y alemán.",
     imgs:[["gines-01.jpg","Portada y contraportada"],["gines-02.jpg","Guardas con frases del restaurante"],["gines-03.jpg","Menú degustación y entrantes"],["gines-04.jpg","Carnes, pescados y postres"],
       ["gines-05.jpg","Portada de la carta en inglés"],["gines-06.jpg","Guardas en inglés"],["gines-07.jpg","Tasting menu y starters"],["gines-08.jpg","Meat, fish y desserts"],
       ["gines-09.jpg","Portada de la carta en alemán"],["gines-10.jpg","Guardas en alemán"],["gines-11.jpg","Menu Degustation y Vorspeisen"],["gines-12.jpg","Fleisch, Fisch y Desserts"],["gines-13.jpg","Fleisch, Fisch y Desserts, versión alternativa"]] },
-  { id:"civitas", t:"Residencia Cívitas", s:"Folleto de bienvenida y precios", tags:["Editorial"], ac:"#e8501c", cover:"civitas-1.jpg",
+  { id:"civitas", ar:1.414, t:"Residencia Cívitas", s:"Folleto de bienvenida y precios", tags:["Editorial"], ac:"#e8501c", cover:"civitas-1.jpg",
     d:"Díptico con calendario académico, plano universitario, precios del curso y actividades de cada mes.",
     imgs:[["civitas-1.jpg","Cara exterior"],["civitas-2.jpg","Cara interior"]] },
-  { id:"experimenta96", t:"Experimenta 96", s:"Revista de cultura del diseño", tags:["Editorial"], ac:"#d0202e", cover:"experimenta-1.jpg",
+  { id:"experimenta96", ar:0.866, t:"Experimenta 96", s:"Revista de cultura del diseño", tags:["Editorial"], ac:"#d0202e", cover:"experimenta-1.jpg",
     d:"Maquetación de un reportaje sobre René Magritte: portada, aperturas a doble página y tipografía con fuerte jerarquía.",
     imgs:[["experimenta-1.jpg","Portada"],["experimenta-2.jpg","René Magritte: apertura del reportaje"],["experimenta-3.jpg","Magritte, mucho más que surrealista"],["experimenta-4.jpg","Analizamos sus obras"],["experimenta-5.jpg","Los amantes y La condición humana"],["experimenta-6.jpg","Muerte, 1967"]] }
 ];
@@ -90,7 +90,7 @@ const names = P.map(p => `<span>${p.t}</span>`).join("");
 $("#m1").innerHTML = names + names; $("#m2").innerHTML = names + names;
 // Trabajos
 $("#trabajos").innerHTML = P.map((p, i) => `<article class="pj rv" data-i="${i}" tabindex="0" role="button" aria-label="Abrir ${p.t}">
-  <div class="pl"><img src="${A(p.cover)}" alt="${p.t}: ${p.s}" loading="lazy"></div><h2 aria-hidden="true">${words(p.t)}</h2>
+  <div class="pl" style="--ar:${p.ar || 1.4}"><img src="${A(p.cover)}" alt="${p.t}: ${p.s}" loading="lazy"></div><h2 aria-hidden="true">${words(p.t)}</h2>
   <div class="info"><b>${p.s}</b><p>${p.tags.join(", ")}</p></div></article>`).join("");
 $(".ft .big").setAttribute("aria-label", "Gracias por mirar"); $(".ft .big").innerHTML = words("Gracias por mirar");
 // Frase
@@ -103,7 +103,7 @@ const revealEls = $$(".pj, .say, .sr");
 function reveal(el) {
   el.classList.add("in"); const n = $("b[data-n]", el); if (!n) return;
   const to = +n.dataset.n, t1 = performance.now() + (parseFloat(getComputedStyle(el).getPropertyValue("--dl")) || 0);
-  (function f(now) { const k = clamp((now - t1) / 1400, 0, 1); n.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t1);
+  (function f(now) { const k = clamp((now - t1) / 1400, 0, 1); n.textContent = (n.dataset.p || "") + Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t1);
 }
 
 // ===== Scroll suave =====
@@ -119,6 +119,10 @@ $$("[data-go]").forEach(a => a.addEventListener("click", e => {
 // ===== WebGL =====
 let gl = null, planes = [], bgU, cam, scene, bgScene, bgCam, renderer;
 let pr = Math.min(devicePixelRatio, innerWidth < 820 ? 1.5 : 2);
+function glOk() {
+  try { const g = renderer.getContext(), ps = renderer.info.programs || []; return ps.length > 0 && ps.every(q => !q.program || g.getProgramParameter(q.program, g.LINK_STATUS)); }
+  catch (e) { return false; }
+}
 function fallback() { document.body.classList.add("nogl"); renderer = null; $$(".pj").forEach(e => e.classList.remove("gl")); }
 let loaded = 0;
 const done = () => { if (++loaded === P.length) ready(); };
@@ -160,7 +164,7 @@ void main(){vUv=uv;vec3 p=position;float b=sin(uv.x*3.1416)*sin(uv.y*3.1416);
 p.z+=b*uV*-1.6+sin(uv.y*7.+uT*1.6+uv.x*3.)*(3.+uH*12.);
 p.y+=uV*.0016*b;
 gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
-      fragmentShader: `varying vec2 vUv;uniform sampler2D uTx;uniform vec2 uS,uI;uniform float uV,uT,uH,uL;
+      fragmentShader: `varying vec2 vUv;uniform sampler2D uTx;uniform vec2 uS,uI,uM;uniform float uV,uT,uH,uL;
 void main(){float k=max(uS.x/uI.x,uS.y/uI.y);vec2 uv=(vUv-.5)*uS/(uI*k)*(1.-.1*uH)+.5;
 uv+=vec2(sin(vUv.y*9.+uT*2.),cos(vUv.x*9.+uT*2.))*(.002+.006*uH);
 float o=uV*.0006;
@@ -172,7 +176,7 @@ c+=(fract(sin(dot(gl_FragCoord.xy+uT,vec2(12.9898,78.233)))*43758.5453)-.5)*.05*
 gl_FragColor=vec4(c,uL);}` }));
     m.visible = false; scene.add(m);
     planes.push({ el, m, u, i, h: 0, rx: 0, ry: 0, mx: .5, my: .5 });
-    coverSrc(P[i]).then(src => loader.load(src, tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, () => { el.classList.add("fb"); done(); })).catch(() => { el.classList.add("fb"); done(); });
+    coverSrc(P[i]).then(src => loader.load(src, tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); el.firstElementChild.style.setProperty("--ar", (tx.image.width / tx.image.height).toFixed(3)); done(); }, undefined, () => { el.classList.add("fb"); done(); })).catch(() => { el.classList.add("fb"); done(); });
   });
 } catch (err) { fallback(); setTimeout(() => ready(), 300); }
 $$(".pj").forEach((el, i) => {
@@ -231,7 +235,7 @@ function loop(now) {
       p.m.position.set(r.left + r.width / 2 - W / 2, H / 2 - (r.top + r.height / 2), p.h * 60);
       const clip = r.top; p.u.uS.value.set(r.width, r.height); p.u.uV.value = vel; p.u.uT.value = t; p.u.uH.value = p.h;
       p.u.uL.value = lerp(p.u.uL.value, p.el.classList.contains("in") ? 1 : 0, .07);
-      if (p.u.uL.value > .96) p.el.classList.add("gl");
+      if (p.u.uL.value > .96 && !p.el.classList.contains("gl")) { if (glOk()) p.el.classList.add("gl"); else fallback(); }
     });
     renderer.clear(); renderer.render(bgScene, bgCam); renderer.clearDepth(); renderer.render(scene, cam);
   } catch (err) { fallback(); }
