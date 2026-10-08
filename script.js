@@ -146,7 +146,7 @@ gl_FragColor=vec4(c,1.);}` })));
   // Planos con las imágenes: se doblan con la velocidad del scroll y reaccionan al ratón
   const geo = new THREE.PlaneGeometry(1, 1, 40, 40), loader = new THREE.TextureLoader();
   $$(".pj").forEach((el, i) => {
-    const u = { uTx: { value: null }, uS: { value: new THREE.Vector2(1, 1) }, uI: { value: new THREE.Vector2(1, 1) }, uV: { value: 0 }, uT: { value: 0 }, uH: { value: 0 }, uL: { value: 0 } };
+    const u = { uTx: { value: null }, uS: { value: new THREE.Vector2(1, 1) }, uI: { value: new THREE.Vector2(1, 1) }, uV: { value: 0 }, uT: { value: 0 }, uH: { value: 0 }, uL: { value: 0 }, uM: { value: new THREE.Vector2(.5, .5) } };
     const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, transparent: true,
       vertexShader: `varying vec2 vUv;uniform float uV,uT,uH;
 void main(){vUv=uv;vec3 p=position;float b=sin(uv.x*3.1416)*sin(uv.y*3.1416);
@@ -156,11 +156,15 @@ gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
       fragmentShader: `varying vec2 vUv;uniform sampler2D uTx;uniform vec2 uS,uI;uniform float uV,uT,uH,uL;
 void main(){float k=max(uS.x/uI.x,uS.y/uI.y);vec2 uv=(vUv-.5)*uS/(uI*k)*(1.-.1*uH)+.5;
 uv+=vec2(sin(vUv.y*9.+uT*2.),cos(vUv.x*9.+uT*2.))*(.002+.006*uH);
-float o=uV*.0007+uH*.004;
-vec4 c=vec4(texture2D(uTx,uv+vec2(o,0.)).r,texture2D(uTx,uv).g,texture2D(uTx,uv-vec2(o,0.)).b,1.);
-gl_FragColor=vec4(c.rgb,uL);}` }));
+float o=uV*.0006;
+vec3 c=(texture2D(uTx,uv+vec2(0.,o)).rgb+texture2D(uTx,uv).rgb+texture2D(uTx,uv-vec2(0.,o)).rgb)/3.;
+float d=distance(vUv,uM);
+c+=uH*.13*exp(-8.*d*d);
+c*=1.-uH*.22*smoothstep(.3,.85,distance(vUv,vec2(.5)));
+c+=(fract(sin(dot(gl_FragCoord.xy+uT,vec2(12.9898,78.233)))*43758.5453)-.5)*.05*uH;
+gl_FragColor=vec4(c,uL);}` }));
     m.visible = false; scene.add(m);
-    planes.push({ el, m, u, i, h: 0, rx: 0, ry: 0 });
+    planes.push({ el, m, u, i, h: 0, rx: 0, ry: 0, mx: .5, my: .5 });
     coverSrc(P[i]).then(src => loader.load(src, tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, () => { el.classList.add("fb"); done(); })).catch(() => { el.classList.add("fb"); done(); });
   });
 } catch (err) { fallback(); setTimeout(() => ready(), 300); }
@@ -214,6 +218,7 @@ function loop(now) {
       p.h = lerp(p.h, hv[p.i] || 0, .08);
       const lx = clamp((mouse.x - (r.left + r.width / 2)) / r.width, -.5, .5), ly = clamp((mouse.y - (r.top + r.height / 2)) / r.height, -.5, .5);
       p.ry = lerp(p.ry, p.h * lx * .5, .08); p.rx = lerp(p.rx, p.h * ly * .5, .08);
+      p.mx = lerp(p.mx, .5 + lx, .15); p.my = lerp(p.my, .5 - ly, .15); p.u.uM.value.set(p.mx, p.my);
       p.m.rotation.set(p.rx, p.ry, 0); p.m.scale.set(r.width * (1 + p.h * .04), r.height * (1 + p.h * .04), 1);
       p.m.position.set(r.left + r.width / 2 - W / 2, H / 2 - (r.top + r.height / 2), p.h * 60);
       const clip = r.top; p.u.uS.value.set(r.width, r.height); p.u.uV.value = vel; p.u.uT.value = t; p.u.uH.value = p.h;
@@ -249,7 +254,7 @@ function openPj(i, e) {
   ov.style.setProperty("--pc", p.ac); ov.style.setProperty("--ox", (e && e.clientX || W / 2) + "px"); ov.style.setProperty("--oy", (e && e.clientY || H / 2) + "px");
   const title = p.t.split(" ").map(w => `<span class="wd">${[...w].map(c => `<span class="c" style="--i:${k++}">${c}</span>`).join("")}</span>`).join(" ");
   ov.innerHTML = `<div class="in"><h2 aria-label="${p.t}">${title}</h2><p class="d">${p.d}</p><ul class="tg">${p.tags.map((t, n) => `<li style="--i:${n}">${t}</li>`).join("")}</ul>
-    ${big.map(([f, c]) => isPdf(f) ? `<div class="pdfw" data-pdf="${f}"><p class="ph">Cargando PDF…</p></div>` : `<figure><img src="${A(f)}" alt="${p.t}: ${c}" onerror="miss(this)"><figcaption>${c}</figcaption></figure>`).join("")}
+    ${big.map(([f, c]) => isPdf(f) ? `<div class="pdfw" data-pdf="${f}"><p class="ph">Cargando PDF…</p></div>` : `<figure class="wait"><img src="${A(f)}" alt="${p.t}: ${c}" decoding="async" onload="this.closest('figure').classList.remove('wait')" onerror="miss(this)"><figcaption>${c}</figcaption></figure>`).join("")}
     ${sm.length ? `<div class="sm">${sm.map(([f, c], n) => `<img style="--i:${n}" src="${A(f)}" alt="${p.t}: ${c || sm[0][1]}" onerror="miss(this)">`).join("")}</div>` : ""}
     <a class="nx" href="#" data-n="${nx}"><small>Siguiente proyecto</small><span>${words(P[nx].t)}</span></a></div>`;
   ov.hidden = false; ov.scrollTop = 0; document.documentElement.style.overflow = "hidden"; ovOpen = true; document.body.classList.add("ovo");
@@ -275,7 +280,7 @@ function ovLoop() {
   if (!ovOpen) return;
   const h = ov.clientHeight, st = ov.scrollTop, mx = ov.scrollHeight - h;
   $$("figure", ov).forEach(f => f.style.setProperty("--d", clamp((f.offsetTop + f.offsetHeight / 2 - st - h / 2) / h, -1, 1).toFixed(3)));
-  const t = $("h2", ov); if (t) t.style.transform = `translateY(${st * .25}px)`;
+  const t = $("h2", ov); if (t) t.style.transform = `translateY(${Math.min(st * .08, 18)}px)`;
   pg.style.transform = `scaleX(${mx > 0 ? st / mx : 0})`; requestAnimationFrame(ovLoop);
 }
 function closePj() {
