@@ -211,7 +211,7 @@ body.ovo #pg{opacity:1}
 }
 .pj.fb .pl img{opacity:1}
 
-/* Proyecto abierto en PC: se oculta el cursor del sistema y solo se ve el cursor propio de la página */
+/* En PC se oculta siempre el cursor del sistema y solo se ve el cursor propio de la página */
 @media (hover:hover) and (pointer:fine) and (min-width:821px){
-  body.ovo,body.ovo *{cursor:none!important}
+  html,body,body *{cursor:none!important}
 }
