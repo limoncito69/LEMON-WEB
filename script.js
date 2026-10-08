@@ -58,7 +58,7 @@ function fitAll() {
   fitHero();
   $$(".pj h2").forEach(h => fitWords(h, vw < 820 ? Math.min(96, vw * .135) : Math.min(200, vw * .115), pj * .97));
   fitWords($(".ft .big"), Math.min(200, vw * .12), vw * .9);
-  const abw = ($(".ab") || {}).clientWidth || vw * .9; fitWords($("#abh"), Math.min(200, vw * .12), abw); fitWords($("#mail"), Math.min(120, vw * .075), abw);
+  const abw = ($(".ab") || {}).clientWidth || vw * .9; fitWords($("#abh"), Math.min(200, vw * .12), abw); fitWords($("#cth"), Math.min(200, vw * .12), abw); fitWords($("#mail"), Math.min(120, vw * .075), abw);
   if (ovOpen) fitOv();
 }
 const mouse = { x: 0, y: 0, nx: .5, ny: .5 };
