@@ -81,7 +81,6 @@ async function pdfCanvas(f, n, w) {
 async function coverSrc(p) { return isPdf(p.cover) ? (await pdfCanvas(p.cover, 1, 1400)).toDataURL("image/jpeg", .9) : A(p.cover); }
 
 // ===== Contenido =====
-const sc = $("#sc");
 // Titular en letras con profundidad 3D
 let ci = 0;
 $("#h1").innerHTML = ["Diseño", "gráfico"].map(w => `<span class="ln" aria-hidden="true">${[...w].map(c => `<span class="ch" style="--i:${ci++};--z:${(ci % 5) - 2}">${c}</span>`).join("")}</span>`).join("");
@@ -90,13 +89,17 @@ const names = P.map(p => `<span>${p.t}</span>`).join("");
 $("#m1").innerHTML = names + names; $("#m2").innerHTML = names + names;
 // Trabajos
 $("#trabajos").innerHTML = P.map((p, i) => `<article class="pj rv" data-i="${i}" tabindex="0" role="button" aria-label="Abrir ${p.t}">
-  <div class="pl"><img src="${A(p.cover)}" alt="${p.t}: ${p.s}" loading="lazy"></div><h2 aria-hidden="true">${words(p.t)}</h2>
+  <div class="pl"><img ${isPdf(p.cover) ? "" : `src="${A(p.cover)}"`} alt="${p.t}: ${p.s}" decoding="async"></div><h2 aria-hidden="true">${words(p.t)}</h2>
   <div class="info"><b>${p.s}</b><p>${p.tags.join(", ")}</p></div></article>`).join("");
 $(".ft .big").setAttribute("aria-label", "Gracias por mirar"); $(".ft .big").innerHTML = words("Gracias por mirar");
 // Frase
 $("#say").innerHTML = "Del logotipo al vaso, de la carta a la fachada. Cada pieza se diseña como parte de un mismo sistema.".split(" ")
   .map((w, i) => `<span class="w"><i style="--i:${i}">${w}</i></span> `).join("");
 $(".say").setAttribute("aria-label", "Del logotipo al vaso, de la carta a la fachada. Cada pieza se diseña como parte de un mismo sistema.");
+
+// ===== Estado de carga (se declara antes de usarlo) =====
+let isReady = false; const ready = () => { isReady = true; };
+let loaded = 0; const done = () => { if (++loaded === P.length) ready(); };
 
 // Revelado al entrar en pantalla (se comprueba en cada fotograma: funciona igual en móvil)
 const revealEls = $$(".pj, .say, .sr");
@@ -106,32 +109,36 @@ function reveal(el) {
   (function f(now) { const k = clamp((now - t1) / 1400, 0, 1); n.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t1);
 }
 
-// ===== Scroll suave =====
+// ===== Scroll nativo (sin capa fija gigante: era lo que hacía desaparecer imágenes y secciones) =====
 const lvh = document.createElement("div"); lvh.style.cssText = "position:fixed;left:0;top:0;width:0;height:100vh;height:100lvh;visibility:hidden;pointer-events:none"; document.body.append(lvh);
 const vhNow = () => Math.max(innerHeight, lvh.offsetHeight || 0);
-let sy = 0, vel = 0, H = vhNow(), W = innerWidth, ovOpen = false;
-const setH = () => document.body.style.height = sc.offsetHeight + "px";
-new ResizeObserver(setH).observe(sc);
+let sy = scrollY, vel = 0, H = vhNow(), W = innerWidth, ovOpen = false;
 $$("[data-go]").forEach(a => a.addEventListener("click", e => {
-  e.preventDefault(); const el = $("#" + a.dataset.go); scrollTo({ top: el.offsetTop, behavior: RM ? "auto" : "smooth" });
+  e.preventDefault(); const el = $("#" + a.dataset.go);
+  scrollTo({ top: a.dataset.go === "top" ? 0 : el.getBoundingClientRect().top + scrollY, behavior: RM ? "auto" : "smooth" });
 }));
 
-// ===== WebGL =====
-let gl = null, planes = [], bgU, cam, scene, bgScene, bgCam, renderer;
-let pr = Math.min(devicePixelRatio, innerWidth < 820 ? 1.5 : 2);
-function fallback() { document.body.classList.add("nogl"); renderer = null; $$(".pj").forEach(e => e.classList.remove("gl")); }
-let loaded = 0;
-const done = () => { if (++loaded === P.length) ready(); };
+// ===== Portadas: son <img> reales y siempre visibles; aquí solo se decide cuándo está lista la carga =====
+const planes = [];
+$$(".pj").forEach((el, i) => {
+  const im = $("img", el); let fin = false;
+  const end = () => { if (!fin) { fin = true; done(); } };
+  planes.push({ el, pl: $(".pl", el), img: im, i, h: 0 });
+  if (isPdf(P[i].cover)) coverSrc(P[i]).then(s => { im.src = s; }).catch(end);
+  if (im.complete && im.naturalWidth) end();
+  else { im.addEventListener("load", end); im.addEventListener("error", end); }
+});
 
+// ===== WebGL: solo el fondo líquido. Si falla, entra el fondo CSS y todo sigue funcionando =====
+let renderer = null, bgU, bgScene, bgCam;
+let pr = Math.min(devicePixelRatio, innerWidth < 820 ? 1 : 1.25);
+function fallback() { document.body.classList.add("nogl"); renderer = null; }
 try {
-  try { renderer = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: W > 820, alpha: false, powerPreference: "high-performance" }); }
+  try { renderer = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: false, alpha: false, powerPreference: "high-performance" }); }
   catch (e) { renderer = new THREE.WebGLRenderer({ canvas: $("#gl"), antialias: false, alpha: false }); }
   renderer.setPixelRatio(pr); renderer.autoClear = false;
   $("#gl").addEventListener("webglcontextlost", e => { e.preventDefault(); fallback(); });
-  scene = new THREE.Scene(); bgScene = new THREE.Scene(); bgCam = new THREE.Camera();
-  cam = new THREE.PerspectiveCamera(50, 1, 1, 3000);
-
-  // Fondo líquido: ruido fractal deformado que fluye solo
+  bgScene = new THREE.Scene(); bgCam = new THREE.Camera();
   bgU = { uT: { value: 0 }, uR: { value: new THREE.Vector2() }, uM: { value: new THREE.Vector2(.5, .5) }, uS: { value: 0 }, uA: { value: new THREE.Color(HOME[0]) }, uB: { value: new THREE.Color(HOME[1]) } };
   bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ uniforms: bgU, depthTest: false,
     vertexShader: "void main(){gl_Position=vec4(position.xy,0.,1.);}",
@@ -149,32 +156,7 @@ c+=uB*.35*exp(-7.*distance(uv,uM));
 c*=1.-.35*distance(uv,vec2(.5));
 c+=(h(gl_FragCoord.xy+uT)-.5)*.045;
 gl_FragColor=vec4(c,1.);}` })));
-
-  // Planos con las imágenes: se doblan con la velocidad del scroll y reaccionan al ratón
-  const geo = new THREE.PlaneGeometry(1, 1, 40, 40), loader = new THREE.TextureLoader();
-  $$(".pj").forEach((el, i) => {
-    const u = { uTx: { value: null }, uS: { value: new THREE.Vector2(1, 1) }, uI: { value: new THREE.Vector2(1, 1) }, uV: { value: 0 }, uT: { value: 0 }, uH: { value: 0 }, uL: { value: 0 }, uM: { value: new THREE.Vector2(.5, .5) } };
-    const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, transparent: true,
-      vertexShader: `varying vec2 vUv;uniform float uV,uT,uH;
-void main(){vUv=uv;vec3 p=position;float b=sin(uv.x*3.1416)*sin(uv.y*3.1416);
-p.z+=b*uV*-1.6+sin(uv.y*7.+uT*1.6+uv.x*3.)*(3.+uH*12.);
-p.y+=uV*.0016*b;
-gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
-      fragmentShader: `varying vec2 vUv;uniform sampler2D uTx;uniform vec2 uS,uI;uniform float uV,uT,uH,uL;
-void main(){float k=max(uS.x/uI.x,uS.y/uI.y);vec2 uv=(vUv-.5)*uS/(uI*k)*(1.-.1*uH)+.5;
-uv+=vec2(sin(vUv.y*9.+uT*2.),cos(vUv.x*9.+uT*2.))*(.002+.006*uH);
-float o=uV*.0006;
-vec3 c=(texture2D(uTx,uv+vec2(0.,o)).rgb+texture2D(uTx,uv).rgb+texture2D(uTx,uv-vec2(0.,o)).rgb)/3.;
-float d=distance(vUv,uM);
-c+=uH*.13*exp(-8.*d*d);
-c*=1.-uH*.22*smoothstep(.3,.85,distance(vUv,vec2(.5)));
-c+=(fract(sin(dot(gl_FragCoord.xy+uT,vec2(12.9898,78.233)))*43758.5453)-.5)*.05*uH;
-gl_FragColor=vec4(c,uL);}` }));
-    m.visible = false; scene.add(m);
-    planes.push({ el, m, u, i, h: 0, rx: 0, ry: 0, mx: .5, my: .5 });
-    coverSrc(P[i]).then(src => loader.load(src, tx => { tx.minFilter = THREE.LinearFilter; u.uTx.value = tx; u.uI.value.set(tx.image.width, tx.image.height); done(); }, undefined, () => { el.classList.add("fb"); done(); })).catch(() => { el.classList.add("fb"); done(); });
-  });
-} catch (err) { fallback(); setTimeout(() => ready(), 300); }
+} catch (err) { fallback(); }
 $$(".pj").forEach((el, i) => {
   hv[i] = 0;
   el.addEventListener("pointerenter", e => { if (e.pointerType === "touch") return; hv[i] = 1; setTarget(P[i].ac); if (FINE) cu(1); });
@@ -186,7 +168,6 @@ function resize() {
   for (const e of [$("#gl"), $("#fb")]) { e.style.width = W + "px"; e.style.height = H + "px"; }
   if (!renderer) return;
   renderer.setPixelRatio(pr); renderer.setSize(W, H, false); bgU.uR.value.set(W * renderer.getPixelRatio(), H * renderer.getPixelRatio());
-  cam.aspect = W / H; cam.position.z = 800; cam.fov = 2 * Math.atan(H / 2 / 800) * 180 / Math.PI; cam.updateProjectionMatrix();
 }
 let rw = innerWidth, rh = vhNow();
 addEventListener("resize", () => { const nh = vhNow(); if (innerWidth !== rw || Math.abs(nh - rh) > 8) { rw = innerWidth; rh = nh; resize(); } }); resize();
@@ -206,40 +187,34 @@ function loop(now) {
   if (renderer && ema > 38 && pr > .6 && now - lastAdj > 2500) { pr = Math.max(.6, pr * .8); lastAdj = now; ema = 16; resize(); }
   for (let k = 0; k < 3; k++) { col.a[k] = lerp(col.a[k], col.ta[k], .06); col.b[k] = lerp(col.b[k], col.tb[k], .06); }
   if (!renderer) { fb.style.setProperty("--ca", col.a.map(v => Math.round(v * 255)).join(" ")); fb.style.setProperty("--cb", col.b.map(v => Math.round(v * 255)).join(" ")); }
-  const prev = sy; sy = lerp(sy, ty, RM ? .2 : (FINE ? .085 : .16)); vel = lerp(vel, clamp(sy - prev, -60, 60), .12);
-  sc.style.transform = `translate3d(0,${-sy}px,0)`;
-  for (let k = revealEls.length - 1; k >= 0; k--) { const r = revealEls[k].getBoundingClientRect(); if (r.top < H * .88 && r.bottom > 0) { reveal(revealEls[k]); revealEls.splice(k, 1); } }
-  const ct = `translate3d(0,${sy}px,0)`; glc.style.transform = ct; fb.style.transform = ct; // el lienzo se queda fijo dentro de #sc para que el texto se mezcle con él
+  const prev = sy; sy = ty; vel = lerp(vel, clamp(sy - prev, -60, 60), RM ? .2 : .15);
+  // Revelado, con red de seguridad al llegar al final de la página
+  const atEnd = ty + innerHeight >= document.documentElement.scrollHeight - 4;
+  for (let k = revealEls.length - 1; k >= 0; k--) { const r = revealEls[k].getBoundingClientRect(); if (atEnd || (r.top < H * .9 && r.bottom > -50)) { reveal(revealEls[k]); revealEls.splice(k, 1); } }
   // Titular 3D sigue al ratón
   const mx = FINE ? mouse.nx - .5 : Math.sin(t * .5) * .5, my = FINE ? mouse.ny - .5 : Math.cos(t * .4) * .35;
   hero.style.setProperty("--rx", my * 16 + "deg"); hero.style.setProperty("--ry", mx * 22 + "deg");
   // Bandas: avanzan solas y aceleran con el scroll
-  mq.forEach(m => { const w = m.el.scrollWidth / 2; m.x += m.d * (1.1 + Math.abs(vel) * .7) + vel * .0; m.x = ((m.x % w) - w) % w; m.el.style.transform = `translate3d(${m.x}px,0,0) skewX(${RM ? 0 : -vel * .25}deg)`; });
+  mq.forEach(m => { const w = m.el.scrollWidth / 2; m.x += m.d * (1.1 + Math.abs(vel) * .7); m.x = ((m.x % w) - w) % w; m.el.style.transform = `translate3d(${m.x}px,0,0) skewX(${RM ? 0 : -vel * .25}deg)`; });
+  // Portadas: parallax, ligera inclinación por velocidad y zoom con el ratón (siempre sobre la imagen real)
+  planes.forEach(p => {
+    const r = p.pl.getBoundingClientRect(); if (r.bottom < -100 || r.top > H + 100) return;
+    p.h = lerp(p.h, hv[p.i] || 0, .1);
+    const s = 1.14 + p.h * .06, mrg = r.height * (s - 1) / 2, sk = RM ? 0 : clamp(vel * .03, -1.2, 1.2);
+    const py = RM ? 0 : clamp(((r.top + r.height / 2) - H / 2) * .05, -mrg * .4, mrg * .4);
+    p.img.style.transform = `translate3d(0,${py.toFixed(1)}px,0) scale(${s.toFixed(3)}) skewY(${sk.toFixed(2)}deg)`;
+  });
   // Cursor
   cx = lerp(cx, mouse.x, .2); cy = lerp(cy, mouse.y, .2); if (FINE) cuEl.style.translate = `${cx}px ${cy}px`;
-  if (renderer) try {
+  if (renderer && !ovOpen) try {
     bgU.uA.value.setRGB(col.a[0], col.a[1], col.a[2]); bgU.uB.value.setRGB(col.b[0], col.b[1], col.b[2]);
     bgU.uT.value = t * (RM ? .35 : 1); bgU.uS.value = sy; bgU.uM.value.set(lerp(bgU.uM.value.x, mouse.nx, .05), lerp(bgU.uM.value.y, mouse.ny, .05));
-    planes.forEach(p => {
-      const r = p.el.firstElementChild.getBoundingClientRect(), vis = r.bottom > -200 && r.top < H + 200 && p.u.uTx.value;
-      p.m.visible = !!vis; if (!vis) return;
-      p.h = lerp(p.h, hv[p.i] || 0, .08);
-      const lx = clamp((mouse.x - (r.left + r.width / 2)) / r.width, -.5, .5), ly = clamp((mouse.y - (r.top + r.height / 2)) / r.height, -.5, .5);
-      p.ry = lerp(p.ry, p.h * lx * .5, .08); p.rx = lerp(p.rx, p.h * ly * .5, .08);
-      p.mx = lerp(p.mx, .5 + lx, .15); p.my = lerp(p.my, .5 - ly, .15); p.u.uM.value.set(p.mx, p.my);
-      p.m.rotation.set(p.rx, p.ry, 0); p.m.scale.set(r.width * (1 + p.h * .04), r.height * (1 + p.h * .04), 1);
-      p.m.position.set(r.left + r.width / 2 - W / 2, H / 2 - (r.top + r.height / 2), p.h * 60);
-      const clip = r.top; p.u.uS.value.set(r.width, r.height); p.u.uV.value = vel; p.u.uT.value = t; p.u.uH.value = p.h;
-      p.u.uL.value = lerp(p.u.uL.value, p.el.classList.contains("in") ? 1 : 0, .07);
-      if (p.u.uL.value > .96) p.el.classList.add("gl");
-    });
-    renderer.clear(); renderer.render(bgScene, bgCam); renderer.clearDepth(); renderer.render(scene, cam);
+    renderer.clear(); renderer.render(bgScene, bgCam);
   } catch (err) { fallback(); }
   requestAnimationFrame(loop);
 }
 
 // ===== Carga: lenta, con "Limoncito" en silueta que se rellena bajo el contador =====
-let isReady = false; const ready = () => { isReady = true; };
 const ldn = $("#ldn"), ld = $("#ld"), t00 = performance.now(), MIN = 5200; let shown = 0;
 (function count(now) {
   const b = clamp(((now || performance.now()) - t00) / MIN, 0, 1), e = b * b * (3 - 2 * b);
