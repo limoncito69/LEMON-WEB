@@ -1,9 +1,12 @@
 // ===== Tus proyectos: edita textos, colores (ac) y orden aquí. Imágenes en /assets =====
 // imgs: [archivo, pie de foto, true si es pequeña (icono)]
 const P = [
-  { id:"mixet", t:"Mixet", s:"Identidad y piezas para sushi a domicilio", tags:["Branding","Cartelería"], ac:"#1fb5d4", cover:"mupi.jpg",
+  { id:"mixet", t:"Mixet", s:"Identidad y piezas para sushi a domicilio", tags:["Branding","Cartelería"], ac:"#1fb5d4", cover:"mixet-01.png",
     d:"Logotipo de letras burbuja, sistema de color, folletos de platos, mupi de reparto, vasos, pegatina y rótulo circular.",
-    imgs:[["mupi.jpg","Mupi de reparto"],["mixet-1.jpg","Folleto de platos: classics"],["mixet-2.jpg","Folleto de platos: premium y spicy"],["vasos.jpg","Diseño de vasos"],["pegatina.jpg","Pegatina"],["rotulo.jpg","Rótulo circular"],
+    imgs:[["mixet-01.png","Logotipo"],["mupi.jpg","Mupi de reparto"],
+      ["mixet-03.png","Packaging classics: envoltorio"],["mixet-04.png","Packaging classics: caja desplegada"],["mixet-05.png","Packaging by mixet: envoltorio"],["mixet-06.png","Packaging by mixet: caja desplegada"],
+      ["mixet-07.png","Packaging premium: envoltorio"],["mixet-08.png","Packaging premium: caja desplegada"],["mixet-09.png","Packaging spicy: envoltorio"],["mixet-10.png","Packaging spicy: caja desplegada"],
+      ["mixet-11.png","Diseño de vasos"],["mixet-12.png","Folleto de platos: anverso"],["mixet-13.png","Folleto de platos: reverso"],["pegatina.jpg","Pegatina"],["rotulo.jpg","Rótulo circular"],
       ["destacada-13.jpg","Portadas de destacadas y foto de perfil",1],["destacada-14.jpg","",1],["destacada-15.jpg","",1],["destacada-16.jpg","",1],["mixet-perfil.jpg","",1]] },
   { id:"loscarmenes", t:"Los Carmenes", s:"Carta de tapas, vitrina y brioches", tags:["Cartas"], ac:"#e08a2e", cover:"carmenes-2.jpg",
     d:"Portada y carta para un gastrobar, con la ilustración de la pita como fondo y una paleta cálida de color miel.",
