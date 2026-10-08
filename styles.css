@@ -52,7 +52,7 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
 @keyframes fl{50%{transform:translate3d(0,-.05em,calc(var(--z)*60px)) rotateY(calc(var(--z)*8deg))}}
 .lead{text-wrap:balance;max-width:30em;margin-top:28px;color:var(--mut);font-size:clamp(17px,1.6vw,22px)}
 .spin{position:absolute;right:4vw;bottom:5vh;width:clamp(110px,12vw,170px);animation:rot 16s linear infinite}
-.spin text{font:600 17px var(--fb);fill:#fff;letter-spacing:.08em}
+.spin text{font:600 12.5px var(--fb);fill:#fff;letter-spacing:.08em}
 @keyframes rot{to{transform:rotate(360deg)}}
 
 /* Bandas que aceleran con el scroll */
