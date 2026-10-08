@@ -197,6 +197,13 @@ addEventListener("resize", () => { const nh = vhNow(); if (innerWidth !== rw || 
 
 // ===== Cursor =====
 const cuEl = $("#cu"), cuT = $("span", cuEl); let cx = 0, cy = 0;
+// Efecto: se estira en la dirección del movimiento (y con el scroll) y deja una pequeña estela
+let cuAng = 0, cuSt = 0, cuSp = 0, cuOn = false;
+const trail = [...Array(6)].map((_, i) => { const d = document.createElement("i"); d.className = "ctr"; d.style.setProperty("--s", 1 - i * .14); document.body.append(d); return { d, x: 0, y: 0 }; });
+addEventListener("pointermove", e => {
+  if (cuOn || e.pointerType === "touch") return; cuOn = true; cx = e.clientX; cy = e.clientY;
+  trail.forEach(t => { t.x = cx; t.y = cy; }); cuEl.classList.add("v");
+});
 function cu(on) { cuEl.classList.toggle("cb", !!on); cuT.textContent = "Ver"; }
 $$("#hd a, .ft a").forEach(a => { a.addEventListener("pointerenter", () => cuEl.style.transform = "scale(2.4)"); a.addEventListener("pointerleave", () => cuEl.style.transform = ""); });
 
@@ -220,7 +227,16 @@ function loop(now) {
   // Bandas: avanzan solas y aceleran con el scroll
   mq.forEach(m => { const w = m.el.scrollWidth / 2; m.x += m.d * (1.1 + Math.abs(vel) * .7) + vel * .0; m.x = ((m.x % w) - w) % w; m.el.style.transform = `translate3d(${m.x}px,0,0) skewX(${RM ? 0 : -vel * .25}deg)`; });
   // Cursor
-  cx = lerp(cx, mouse.x, .2); cy = lerp(cy, mouse.y, .2); if (FINE) cuEl.style.translate = `${cx}px ${cy}px`;
+  const pcx = cx, pcy = cy; cx = lerp(cx, mouse.x, .2); cy = lerp(cy, mouse.y, .2);
+  if (FINE) {
+    cuEl.style.translate = `${cx}px ${cy}px`;
+    const dx = cx - pcx, dy = cy - pcy + vel * .6, sp = Math.hypot(dx, dy), grown = cuEl.classList.contains("cb");
+    if (sp > .4) cuAng = Math.atan2(dy, dx);
+    cuSt = grown ? 0 : lerp(cuSt, Math.min(sp * .03, .85), .25); cuSp = lerp(cuSp, Math.min(sp / 14, 1), .2);
+    cuEl.style.rotate = grown ? "0deg" : cuAng * 180 / Math.PI + "deg"; cuEl.style.scale = `${1 + cuSt} ${1 - cuSt * .4}`;
+    let px = cx, py = cy;
+    trail.forEach((t, k) => { t.x = lerp(t.x, px, .34); t.y = lerp(t.y, py, .34); px = t.x; py = t.y; t.d.style.translate = `${t.x}px ${t.y}px`; t.d.style.opacity = grown ? 0 : cuSp * (.55 - k * .07); });
+  }
   if (renderer) try {
     bgU.uA.value.setRGB(col.a[0], col.a[1], col.a[2]); bgU.uB.value.setRGB(col.b[0], col.b[1], col.b[2]);
     bgU.uT.value = t * (RM ? .35 : 1); bgU.uS.value = sy; bgU.uM.value.set(lerp(bgU.uM.value.x, mouse.nx, .05), lerp(bgU.uM.value.y, mouse.ny, .05));
