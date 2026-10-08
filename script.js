@@ -263,7 +263,7 @@ const fo = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecti
 function miss(el) { const f = el.closest("figure"); if (f) return f.remove(); const w = el.parentNode; el.remove(); if (w && !w.children.length) w.remove(); }
 let cur = 0;
 function openPj(i, e, swap) {
-  cur = i; const p = P[i], nx = (i + 1) % P.length, big = p.imgs.filter(m => !m[2]), sm = p.imgs.filter(m => m[2]); let k = 0;
+  cu(0); cur = i; const p = P[i], nx = (i + 1) % P.length, big = p.imgs.filter(m => !m[2]), sm = p.imgs.filter(m => m[2]); let k = 0;
   ov.style.setProperty("--pc", p.ac); ov.style.setProperty("--ox", (e && e.clientX || W / 2) + "px"); ov.style.setProperty("--oy", (e && e.clientY || H / 2) + "px");
   const title = p.t.split(" ").map(w => `<span class="wd">${[...w].map(c => `<span class="c" style="--i:${k++}">${c}</span>`).join("")}</span>`).join(" ");
   ov.innerHTML = `<div class="in"><h2 aria-label="${p.t}">${title}</h2><p class="d">${p.d}</p><ul class="tg">${p.tags.map((t, n) => `<li style="--i:${n}">${t}</li>`).join("")}</ul>
