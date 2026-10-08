@@ -197,7 +197,7 @@ addEventListener("resize", () => { const nh = vhNow(); if (innerWidth !== rw || 
 
 // ===== Cursor =====
 const cuEl = $("#cu"), cuT = $("span", cuEl); let cx = 0, cy = 0;
-function cu(on) { cuEl.classList.toggle("big", !!on); cuT.textContent = "Ver"; }
+function cu(on) { cuEl.classList.toggle("cb", !!on); cuT.textContent = "Ver"; }
 $$("#hd a, .ft a").forEach(a => { a.addEventListener("pointerenter", () => cuEl.style.transform = "scale(2.4)"); a.addEventListener("pointerleave", () => cuEl.style.transform = ""); });
 
 // ===== Bucle =====
