@@ -84,7 +84,7 @@ async function coverSrc(p) { return isPdf(p.cover) ? (await pdfCanvas(p.cover, 1
 const sc = $("#sc");
 // Titular en letras con profundidad 3D
 let ci = 0;
-$("#h1").innerHTML = ["Diseño", "gráfico"].map(w => `<span class="ln" aria-hidden="true">${[...w].map(c => `<span class="ch" style="--i:${ci++};--z:${(ci % 5) - 2}">${c}</span>`).join("")}</span>`).join("");
+$("#h1").innerHTML = ["Diseñador", "Gráfico"].map(w => `<span class="ln" aria-hidden="true">${[...w].map(c => `<span class="ch" style="--i:${ci++};--z:${(ci % 5) - 2}">${c}</span>`).join("")}</span>`).join("");
 // Bandas
 const names = P.map(p => `<span>${p.t}</span>`).join("");
 $("#m1").innerHTML = names + names; $("#m2").innerHTML = names + names;
