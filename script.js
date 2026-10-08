@@ -258,11 +258,11 @@ requestAnimationFrame(loop);
 // ===== Proyecto abierto =====
 const ov = $("#ov"), x = document.createElement("button"), pg = document.createElement("i");
 x.id = "x"; x.textContent = "Cerrar"; pg.id = "pg"; document.body.append(x, pg);
-const fo = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add("on"); fo.unobserve(en.target); } }), { root: ov, threshold: .1 });
+const fo = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting && !swapBusy) { en.target.classList.add("on"); fo.unobserve(en.target); } }), { root: ov, threshold: .1 });
 // Si una imagen no existe en /assets, se oculta en vez de mostrar un hueco roto
 function miss(el) { const f = el.closest("figure"); if (f) return f.remove(); const w = el.parentNode; el.remove(); if (w && !w.children.length) w.remove(); }
 let cur = 0;
-function openPj(i, e) {
+function openPj(i, e, swap) {
   cur = i; const p = P[i], nx = (i + 1) % P.length, big = p.imgs.filter(m => !m[2]), sm = p.imgs.filter(m => m[2]); let k = 0;
   ov.style.setProperty("--pc", p.ac); ov.style.setProperty("--ox", (e && e.clientX || W / 2) + "px"); ov.style.setProperty("--oy", (e && e.clientY || H / 2) + "px");
   const title = p.t.split(" ").map(w => `<span class="wd">${[...w].map(c => `<span class="c" style="--i:${k++}">${c}</span>`).join("")}</span>`).join(" ");
@@ -271,9 +271,9 @@ function openPj(i, e) {
     ${sm.length ? `<div class="sm">${sm.map(([f, c], n) => `<img style="--i:${n}" src="${A(f)}" alt="${p.t}: ${c || sm[0][1]}" onerror="miss(this)">`).join("")}</div>` : ""}
     <a class="nx" href="#" data-n="${nx}"><small>Siguiente proyecto</small><span>${words(P[nx].t)}</span></a></div>`;
   ov.hidden = false; ov.scrollTop = 0; document.documentElement.style.overflow = "hidden"; ovOpen = true; document.body.classList.add("ovo");
-  fitAll(); requestAnimationFrame(() => { ov.classList.add("open"); ovLoop(); });
+  fitAll(); if (!swap) requestAnimationFrame(() => { ov.classList.add("open"); ovLoop(); });
   $$("figure, .sm", ov).forEach(f => fo.observe(f)); x.focus({ preventScroll: true });
-  $(".nx", ov).addEventListener("click", ev => { ev.preventDefault(); ov.classList.remove("open"); setTimeout(() => openPj(nx, ev), 950); });
+  $(".nx", ov).addEventListener("click", ev => { ev.preventDefault(); goNext(nx); });
   // PDFs: cada página se dibuja como un lienzo
   $$("[data-pdf]", ov).forEach(async w => {
     const f = w.dataset.pdf;
@@ -291,6 +291,7 @@ function openPj(i, e) {
 // Parallax 3D de las piezas y barra de progreso mientras el proyecto está abierto
 function ovLoop() {
   if (!ovOpen) return;
+  if (swapBusy) { requestAnimationFrame(ovLoop); return; }
   const h = ov.clientHeight, st = ov.scrollTop, mx = ov.scrollHeight - h;
   $$("figure:not(.on), .sm:not(.on)", ov).forEach(f => { if (f.offsetTop - st < h * .92) { f.classList.add("on"); fo.unobserve(f); } });
   $$("figure", ov).forEach(f => f.style.setProperty("--d", clamp((f.offsetTop + f.offsetHeight / 2 - st - h / 2) / h, -1, 1).toFixed(3)));
@@ -298,8 +299,37 @@ function ovLoop() {
   pg.style.transform = `scaleX(${mx > 0 ? st / mx : 0})`; requestAnimationFrame(ovLoop);
 }
 function closePj() {
+  swapId++; swapBusy = false; lmReset();
   ov.classList.remove("open"); document.body.classList.remove("ovo"); document.documentElement.style.overflow = ""; ovOpen = false;
   setTimeout(() => { if (!ovOpen) ov.hidden = true; }, 900);
+}
+
+// ===== Transición entre proyectos: pantalla de carga con el limón =====
+let swapId = 0, swapBusy = false;
+const LEMON = '<path d="M12 112C12 104 20 100 30 98C38 70 66 50 100 50C134 50 162 70 170 98C180 100 188 104 188 112C188 120 180 124 170 126C162 154 134 172 100 172C66 172 38 154 30 126C20 124 12 120 12 112Z"/><path d="M104 52C102 32 118 18 144 18C146 42 130 58 104 52Z"/>';
+const lm = document.createElement("div"); lm.id = "lm"; lm.setAttribute("aria-hidden", "true");
+lm.innerHTML = `<div class="lmw"><svg class="lmo" viewBox="0 0 200 200">${LEMON}</svg><svg class="lmf" viewBox="0 0 200 200">${LEMON}</svg></div><p class="lmt"></p><b class="lmn">0</b>`;
+document.body.append(lm);
+const lmT = $(".lmt", lm), lmN = $(".lmn", lm), wait = ms => new Promise(r => setTimeout(r, ms));
+function lmSet(v) { lmN.textContent = Math.round(v) + "%"; lm.style.setProperty("--p", v + "%"); }
+function lmReset() { lm.style.transition = "none"; lm.classList.remove("on", "out"); lmSet(0); void lm.offsetWidth; lm.style.transition = ""; }
+async function goNext(nx) {
+  if (swapBusy) return; swapBusy = true; const id = ++swapId, p = P[nx], alive = () => id === swapId;
+  lmReset(); lm.style.setProperty("--pc", p.ac); lmT.textContent = p.t; void lm.offsetWidth; lm.classList.add("on");
+  // el limón se llena mientras se precargan las primeras imágenes del proyecto
+  let prog = 0, done = false;
+  const tick = () => { if (!alive()) return; prog += ((done ? 100 : 88) - prog) * (done ? .18 : .025); lmSet(Math.min(prog, 100)); if (!(done && prog > 99.5)) requestAnimationFrame(tick); };
+  tick();
+  const pre = Promise.all(p.imgs.filter(m => !m[2] && !isPdf(m[0])).slice(0, 2).map(m => new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = A(m[0]); })));
+  await Promise.all([wait(1500), Promise.race([pre, wait(4500)])]); if (!alive()) return;
+  // con la pantalla cubierta: se cambia el contenido sin animar y se coloca arriba del todo
+  ov.style.transition = "none"; ov.classList.remove("open"); void ov.offsetWidth;
+  openPj(nx, null, true); void ov.offsetWidth; ov.style.transition = "";
+  done = true; await wait(450); if (!alive()) return; lmSet(100);
+  // se abre el proyecto debajo y el telón se levanta descubriéndolo
+  ov.style.transition = "none"; ov.classList.add("open"); void ov.offsetWidth; ov.style.transition = "";
+  swapBusy = false; lm.classList.add("out");
+  await wait(1100); if (!alive()) return; lmReset();
 }
 $$(".pj").forEach(el => { const go = e => openPj(+el.dataset.i, e); el.addEventListener("click", go); el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }); });
 x.addEventListener("click", closePj); addEventListener("keydown", e => { if (e.key === "Escape" && ovOpen) closePj(); });
