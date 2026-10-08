@@ -132,6 +132,9 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
   .stats{gap:clamp(40px,5vw,96px)}
   .stat{text-align:center}
   .stat b{font-size:min(10.5vw,132px)}
+  /* servicios: el título gana ancho y baja de tamaño para que "Cartelería y packaging" quede en dos líneas */
+  .srv li{grid-template-columns:1.3fr 1fr}
+  .srv h3{font-size:clamp(28px,3.9vw,60px)}
 }
 
 /* Proyecto abierto */
