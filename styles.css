@@ -65,7 +65,8 @@ body.nogl .pj:hover .pl img{transform:scale(1.05)}
 .wk{padding:12vh 0 8vh}
 .pj{position:relative;width:min(1300px,100% - 48px);margin:0 auto 14vh;display:flex;cursor:pointer}
 .pj:nth-child(even){justify-content:flex-end}
-.pl{width:58%;height:clamp(380px,68vh,760px);position:relative}
+/* cada imagen conserva su proporción: se ve completa, sin recortes */
+.pl{width:min(70%,calc(74vh*var(--ar,1.4)));aspect-ratio:var(--ar,1.4);position:relative}
 .pl img{width:100%;height:100%;object-fit:cover;opacity:1}
 .pj.gl .pl img{opacity:0}
 .nogl .pl img{opacity:1}
@@ -163,7 +164,7 @@ body.ovo #pg{opacity:1}
   .hero{padding:90px 16px 40px}
   .spin{width:92px;right:14px;bottom:14px}
   .pj{display:block;width:calc(100% - 32px);margin-bottom:15vh}
-  .pl{width:100%;height:min(62vh,125vw)}
+  .pl{width:min(100%,calc(66vh*var(--ar,1.4)));height:auto}
   .pj h2,.pj:nth-child(even) h2{position:relative;top:auto;left:auto;right:auto;transform:none;margin-top:-.42em;font-size:clamp(40px,13.5vw,96px);white-space:normal;line-height:.92}
   .pj:nth-child(even) h2{text-align:right}
   .info,.pj:nth-child(even) .info{position:static;transform:none;max-width:none;margin-top:18px;text-align:left}
